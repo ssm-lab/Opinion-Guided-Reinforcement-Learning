@@ -1,0 +1,29 @@
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - ci-tests
+  pull_request:
+    branches:
+      - ci-tests
+  workflow_dispatch:
+    branches:
+      - ci-tests
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e $GITHUB_WORKSPACE
+      - name: Unit tests
+        run: |
+          python -m tests.parser_tests
