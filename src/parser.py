@@ -10,6 +10,6 @@ class Parser():
             for line in f:
                 line = line.replace(" ", "")[:-1]
                 [cellid, opinion] = re.split(r',', line)
-                hints.append(Hint(int(cellid), int(opinion)))
+                hints.append(Hint(int(cellid), int(opinion), float(u)))
                 
         return Configuration(float(u), hints)
