@@ -10,6 +10,6 @@ class Hint():
 
 class Configuration():
     
-    def __init__(self, u: float, hints: list[Hint]):
+    def __init__(self, u: float, hints):
         self.u = u
         self.hints = hints
