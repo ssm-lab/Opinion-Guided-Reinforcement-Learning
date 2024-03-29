@@ -21,6 +21,7 @@ class ParserTests(unittest.TestCase):
         
         self.assertTrue(configuration.u >= 0)
         self.assertTrue(configuration.u <= 1)
+        print(configuration.u)
         self.assertEqual(len(configuration.hints), expectedNumberOfHints)
         
 if __name__ == "__main__":

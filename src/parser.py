@@ -3,9 +3,7 @@ from .model import Hint, Configuration
 
 class Parser():
 
-    def parse(self, file):        
-        regex = re.compile('^[0-9]+,[+-]{1}[0-2]{1}')
-        
+    def parse(self, file):
         with open(file, 'r') as f:
             u = f.readline()
             hints = []
