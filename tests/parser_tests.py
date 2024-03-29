@@ -11,7 +11,7 @@ class ParserTests(unittest.TestCase):
         del(self._parser)
 
     def testValidInput(self):
-        file = os.path.abspath("validinput.txt")
+        file = os.path.abspath("tests/validinput.txt")
         
         with open(file, 'r') as f:
             lines = len(f.readlines())
@@ -21,7 +21,6 @@ class ParserTests(unittest.TestCase):
         
         self.assertTrue(configuration.u >= 0)
         self.assertTrue(configuration.u <= 1)
-        print(configuration.u)
         self.assertEqual(len(configuration.hints), expectedNumberOfHints)
         
 if __name__ == "__main__":
