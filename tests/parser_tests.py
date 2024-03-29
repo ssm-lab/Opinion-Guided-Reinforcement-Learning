@@ -1,5 +1,6 @@
 import unittest
 from src.parser import Parser
+import os
 
 class ParserTests(unittest.TestCase):
     
@@ -9,8 +10,18 @@ class ParserTests(unittest.TestCase):
     def tearDown(self):
         del(self._parser)
 
-    def testAddModel(self):
-        self._parser.parse()
+    def testValidInput(self):
+        file = os.path.abspath("validinput.txt")
+        
+        with open(file, 'r') as f:
+            lines = len(f.readlines())
+            expectedNumberOfHints = lines-1
+        
+        configuration = self._parser.parse(file)
+        
+        self.assertTrue(configuration.u >= 0)
+        self.assertTrue(configuration.u <= 1)
+        self.assertEqual(len(configuration.hints), expectedNumberOfHints)
         
 if __name__ == "__main__":
     unittest.main()
