@@ -15,7 +15,7 @@ class ParserTests(unittest.TestCase):
         
         with open(file, 'r') as f:
             lines = len(f.readlines())
-            expectedNumberOfHints = lines-1
+            expectedNumberOfHints = lines-2
         
         configuration = self._parser.parse(file)
         
