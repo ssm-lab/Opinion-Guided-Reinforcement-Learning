@@ -14,7 +14,7 @@ class Cell():
         return Cell(max(self.y-1, 0), self.x)
         
     def getCellBelow(self):
-        return Cell(min(self.y+1, self.n-1), ,self.x)
+        return Cell(min(self.y+1, self.n-1), self.x)
     
     def getCellToTheRight(self):
         return Cell(self.y, max(self.x-1, 0))
