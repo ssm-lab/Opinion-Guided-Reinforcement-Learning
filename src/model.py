@@ -81,7 +81,7 @@ class Hint():
         
         # some floating-point issues, as usual with Python
         self.b = round(self.b, 4)
-        self.d = round(self.b, 4)
+        self.d = round(self.d, 4)
         
     def project(self):
         return b + a*u
