@@ -51,6 +51,9 @@ class Cell():
         return [self.get_cell_in_direction(d) for d in Direction]
     
     def get_action_to_me_from_neighbor(self, direction:Direction):
+        if self.get_cell_in_direction(direction) is None:
+            return None
+        
         if(direction == Direction.LEFT):
             return Direction.RIGHT
         elif(direction == Direction.DOWN):
@@ -109,7 +112,8 @@ cell00 = Cell(0, 0, 4)
 cell01 = Cell(0, 1, 4)
 #print(cell00)
 #print(cell01)
-
+'''
+'''
 grid = Grid(4)
 
 for cell in grid.cells:
@@ -127,10 +131,10 @@ print(grid.get_cell_by_coordinates(3, 3).get_neighbors())  # should print (3,2),
 
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT))
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT).value)
+
+
 print(f'me: {grid.cells[5]}')
 print(grid.cells[5].get_actions_to_me_from_all_neighbors())
-
 print(f'me: {grid.cells[0]}')
-for sap in grid.cells[0].get_actions_to_me_from_all_neighbors():
-    print(sap[1].value)
+print(grid.cells[0].get_actions_to_me_from_all_neighbors())
 '''
