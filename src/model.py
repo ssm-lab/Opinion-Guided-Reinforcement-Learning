@@ -10,42 +10,42 @@ class Direction(Enum):
 Represents a grid of cells
 """
 class Grid():
-    def __init__(self, size:int):
-        self.size = size
+    def __init__(self, edge_size:int):
+        self.edge_size = edge_size
         self.cells =  []
         
-        for y in range(size):
-            for x in range(size):
-                cell = Cell(y, x, size)
+        for row in range(edge_size):
+            for col in range(edge_size):
+                cell = Cell(row, col, edge_size)
                 self.cells.append(cell)
     
-    def get_cell_by_coordinates(self, y:int, x:int):
-        return self.cells[y*self.size + x]
+    def get_cell_by_coordinates(self, row:int, col:int):
+        return self.cells[row*self.edge_size + col]
 
 """
 Represents a cell
 """
 class Cell():
-    def __init__(self, y:int, x:int, map_size:int):
-        self.y = y
-        self.x = x
-        self.map_size = map_size
+    def __init__(self, row:int, col:int, edge_size:int):
+        self.row = row
+        self.col = col
+        self.edge_size = edge_size
         
     def __str__(self):
-        return '({}, {})'.format(self.y, self.x)
+        return '({}, {})'.format(self.row, self.col)
         
     def get_sequence_number_in_grid(self):
-        return self.y*self.map_size + self.x
+        return self.row*self.edge_size + self.col
         
     def get_cell_in_direction(self, direction:Direction):
         if(direction == Direction.LEFT):
-            return None if self.x == 0 else [self.y, self.x-1]
+            return None if self.col == 0 else [self.row, self.col-1]
         elif(direction == Direction.DOWN):
-            return None if self.y == self.map_size-1 else [self.y+1, self.x]
+            return None if self.row == self.edge_size-1 else [self.row+1, self.col]
         elif(direction == Direction.RIGHT):
-            return None if self.x == self.map_size-1 else [self.y, self.x+1]
+            return None if self.col == self.edge_size-1 else [self.row, self.col+1]
         elif(direction == Direction.UP):
-            return None if self.y == 0 else [self.y-1, self.x]
+            return None if self.row == 0 else [self.row-1, self.col]
         
     def get_neighbors(self):
         return [self.get_cell_in_direction(d) for d in Direction]
@@ -75,7 +75,7 @@ class Hint():
         return 'Hint(cell: {}, hint: {}). (At uncertainty = {}. =>belief = {}, =>disbelief = {}.)'.format(self.cell, self.opinion, self.u, self.b, self.d)
         
     def normalize_belief_for_uncertainty(self):
-        #these are hard-coded values to be replaced when we generalize the framework...
+        # these are hard-coded values to be replaced when we generalize the framework
         self.b = (self.opinion + 2) * ((1 - self.u)/(4))
         self.d = 1 - (self.b + self.u)
         
@@ -99,8 +99,7 @@ class HumanInput():
     def __str__(self):
         return f'Human input with {len(self.hints)} hints at uncertainty level {self.u}.'
         
-
-'''        
+'''
 cell00 = Cell(0, 0, 4)
 cell01 = Cell(0, 1, 4)
 #print(cell00)
