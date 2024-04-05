@@ -42,6 +42,15 @@ class GridTests(unittest.TestCase):
             row = cell[0]
             col = cell[1]
             self.assertEqual(self._grid.get_cell_by_coordinates(row, col).get_sequence_number_in_grid(), row*self._size+col)
+    
+    def testActionsToMeFromNeighborsCorrespondToTheOppositeDirection(self):
+        middle_cell = self._grid.get_cell_by_coordinates(random.randint(1, self._size-2), random.randint(1, self._size-2))
         
+        self.assertEqual(middle_cell.get_action_to_me_from_neighbor(Direction.UP), Direction.DOWN)
+        self.assertEqual(middle_cell.get_action_to_me_from_neighbor(Direction.DOWN), Direction.UP)
+        self.assertEqual(middle_cell.get_action_to_me_from_neighbor(Direction.LEFT), Direction.RIGHT)
+        self.assertEqual(middle_cell.get_action_to_me_from_neighbor(Direction.RIGHT), Direction.LEFT)
+        
+    
 if __name__ == "__main__":
     unittest.main()
