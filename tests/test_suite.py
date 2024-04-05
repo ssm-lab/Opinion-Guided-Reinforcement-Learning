@@ -3,13 +3,14 @@ import unittest
 
 from .parser_tests import ParserTests
 from .sl_tests import SLTests
+from .grid_tests import GridTests
 
 """
 Full test suite
 """
 
 def create_suite():
-    testCases = [ParserTests, SLTests]
+    testCases = [ParserTests, SLTests, GridTests]
     loadedCases = []
     
     for case in testCases:
