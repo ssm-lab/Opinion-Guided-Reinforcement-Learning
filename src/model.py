@@ -6,6 +6,9 @@ class Direction(Enum):
     RIGHT = 2
     UP = 3
 
+"""
+Represents a grid of cells
+"""
 class Grid():
     def __init__(self, size:int):
         self.size = size
