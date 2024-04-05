@@ -129,7 +129,7 @@ def plot(no_advice_success_rates, advice_success_rates):
 Main
 '''''''''''''''''''''''''''''''''''''''''''''
 human_input = get_human_input()
-assert human_input.n == MAP_SIZE
+assert human_input.map_size == MAP_SIZE
 
 advice = get_advice_matrix(human_input)
 
