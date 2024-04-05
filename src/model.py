@@ -50,12 +50,12 @@ class Hint():
         self.cell = cell
         self.opinion = opinion
         self.u = uncertainty
-        self.normalizeBeliefForUncertainty()
+        self.normalize_belief_for_uncertainty()
         
     def __str__(self):
         return 'Hint(cell: {}, hint: {}). (At uncertainty = {}. =>belief = {}, =>disbelief = {}.)'.format(self.cell, self.opinion, self.u, self.b, self.d)
         
-    def normalizeBeliefForUncertainty(self):
+    def normalize_belief_for_uncertainty(self):
         #these are hard-coded values to be replaced when we generalize the framework...
         self.b = (self.opinion + 2) * ((1 - self.u)/(4))
         self.d = 1 - (self.b + self.u)
@@ -64,7 +64,7 @@ class Hint():
         self.b = round(self.b, 4)
         self.d = round(self.b, 4)
         
-    def get_P(self):
+    def project(self):
         return b + a*u
 
 """
