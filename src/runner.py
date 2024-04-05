@@ -62,9 +62,7 @@ def get_action_probabilities(state, policy, num_actions):
         
     return logits / np.sum(logits)
 
-def discrete_policy_grad(environment, initial_policy, advice=None):
-    print(f'running discrete_policy_grad with advice = {advice}')
-
+def discrete_policy_grad(environment, initial_policy):
     num_actions = environment.action_space.n
     policy = initial_policy
 
@@ -104,10 +102,10 @@ def discrete_policy_grad(environment, initial_policy, advice=None):
 
     return success_rate
 
-def evaluate(environment, initial_policy, advice):
+def evaluate(environment, initial_policy):
     success_rates = []
     for i in range(NUM_EXPERIMENTS):
-        iteration = discrete_policy_grad(environment, initial_policy, advice)
+        iteration = discrete_policy_grad(environment, initial_policy)
         success_rates.append(iteration)
     return success_rates
 
@@ -132,15 +130,16 @@ Main
 '''''''''''''''''''''''''''''''''''''''''''''
 environment = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
 human_input = human_input()
+advice = get_advice_matrix(human_input)
 
 # evaluate without advice
+print('running evaluation without advice')
 initial_policy = np.zeros((environment.observation_space.n, environment.action_space.n))
-advice = None
-no_advice_success_rates = evaluate(environment, initial_policy, advice)
+no_advice_success_rates = evaluate(environment, initial_policy)
 
 # evaluate with advice
+print('running evaluation with advice')
 initial_policy = np.loadtxt('src/files/human_advised_policy', delimiter=",")
-advice = get_advice_matrix(human_input)
-advice_success_rates =  evaluate(environment, initial_policy, advice)
+advice_success_rates =  evaluate(environment, initial_policy)
 
 plot(no_advice_success_rates, advice_success_rates) # TODO: should be saveData()
