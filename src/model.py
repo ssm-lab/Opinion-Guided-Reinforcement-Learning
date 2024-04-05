@@ -31,33 +31,21 @@ class Cell():
     def __str__(self):
         return '({}, {})'.format(self.y, self.x)
         
-    def get_cell_above(self):
-        return None if self.y == 0 else [self.y-1, self.x]
-        
-    def get_cell_below(self):
-        return None if self.y == self.map_size-1 else [self.y+1, self.x]
-    
-    def get_cell_to_the_left(self):
-        return None if self.x == 0 else [self.y, self.x-1]
-        
-    def get_cell_to_the_right(self):
-        return None if self.x == self.map_size-1 else [self.y, self.x+1]
+    def get_sequence_number_in_grid(self):
+        return self.y*self.map_size + self.x
         
     def get_cell_in_direction(self, direction:Direction):
         if(direction == Direction.LEFT):
-            return self.get_cell_to_the_left()
+            return None if self.x == 0 else [self.y, self.x-1]
         elif(direction == Direction.DOWN):
-            return self.get_cell_below()
+            return None if self.y == self.map_size-1 else [self.y+1, self.x]
         elif(direction == Direction.RIGHT):
-            return self.get_cell_to_the_right()
+            return None if self.x == self.map_size-1 else [self.y, self.x+1]
         elif(direction == Direction.UP):
-            return self.get_cell_above()
+            return None if self.y == 0 else [self.y-1, self.x]
         
     def get_neighbors(self):
-        return [self.get_cell_to_the_left(), self.get_cell_below(), self.get_cell_to_the_right(), self.get_cell_above()]
-        
-    def get_sequence_number(self):
-        return self.y*self.map_size + self.x
+        return [self.get_cell_in_direction(d) for d in Direction]
     
     def get_action_to_me_from_neighbor(self, direction:Direction):
         if(direction == Direction.LEFT):
@@ -108,7 +96,8 @@ class HumanInput():
     def __str__(self):
         return f'Human input with {len(self.hints)} hints at uncertainty level {self.u}.'
         
-        
+
+'''        
 cell00 = Cell(0, 0, 4)
 cell01 = Cell(0, 1, 4)
 #print(cell00)
@@ -117,20 +106,17 @@ cell01 = Cell(0, 1, 4)
 grid = Grid(4)
 for cell in grid.cells:
     print(cell)
-    
+
 print(grid.get_cell_by_coordinates(0, 2))   # should print 0,2
 print(grid.get_cell_by_coordinates(3, 3))   # should print 3,3
-print(grid.get_cell_by_coordinates(3, 3).get_sequence_number())   # should print 15
+print(grid.get_cell_by_coordinates(3, 3).get_sequence_number_in_grid())   # should print 15
 
-print(grid.get_cell_by_coordinates(3, 3).get_cell_above())  # should print 2,3
-print(grid.get_cell_by_coordinates(3, 3).get_cell_below())  # should print None
-print(grid.get_cell_by_coordinates(3, 3).get_cell_to_the_left())  # should print 3,2
-print(grid.get_cell_by_coordinates(3, 3).get_cell_to_the_right())  # should print None
-print(grid.get_cell_by_coordinates(3, 3).get_neighbors())  # should print (3,2), None, None, (2,3)
-
-print(grid.get_cell_by_coordinates(3, 3).get_cell_above())  # should print 2,3
 print(grid.get_cell_by_coordinates(3, 3).get_cell_in_direction(Direction.UP))  # should print 2,3
-
+print(grid.get_cell_by_coordinates(3, 3).get_cell_in_direction(Direction.DOWN))  # should print None
+print(grid.get_cell_by_coordinates(3, 3).get_cell_in_direction(Direction.LEFT))  # should print 3,2
+print(grid.get_cell_by_coordinates(3, 3).get_cell_in_direction(Direction.RIGHT))  # should print None
+print(grid.get_cell_by_coordinates(3, 3).get_neighbors())  # should print (3,2), None, None, (2,3)
 
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT))
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT).value)
+'''
