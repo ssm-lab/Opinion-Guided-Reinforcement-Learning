@@ -1,3 +1,11 @@
+from enum import Enum
+
+class Direction(Enum):
+    LEFT = 0
+    DOWN = 1
+    RIGHT = 2
+    UP = 3
+
 class Grid():
     def __init__(self, size:int):
         self.size = size
@@ -35,11 +43,31 @@ class Cell():
     def get_cell_to_the_right(self):
         return None if self.x == self.map_size-1 else [self.y, self.x+1]
         
+    def get_cell_in_direction(self, direction:Direction):
+        if(direction == Direction.LEFT):
+            return self.get_cell_to_the_left()
+        elif(direction == Direction.DOWN):
+            return self.get_cell_below()
+        elif(direction == Direction.RIGHT):
+            return self.get_cell_to_the_right()
+        elif(direction == Direction.UP):
+            return self.get_cell_above()
+        
     def get_neighbors(self):
         return [self.get_cell_to_the_left(), self.get_cell_below(), self.get_cell_to_the_right(), self.get_cell_above()]
         
     def get_sequence_number(self):
         return self.y*self.map_size + self.x
+    
+    def get_action_to_me_from_neighbor(self, direction:Direction):
+        if(direction == Direction.LEFT):
+            return Direction.RIGHT
+        elif(direction == Direction.DOWN):
+            return Direction.UP
+        elif(direction == Direction.RIGHT):
+            return Direction.LEFT
+        elif(direction == Direction.UP):
+            return Direction.DOWN
 
 """
 Represents an opinion about a cell
@@ -99,3 +127,10 @@ print(grid.get_cell_by_coordinates(3, 3).get_cell_below())  # should print None
 print(grid.get_cell_by_coordinates(3, 3).get_cell_to_the_left())  # should print 3,2
 print(grid.get_cell_by_coordinates(3, 3).get_cell_to_the_right())  # should print None
 print(grid.get_cell_by_coordinates(3, 3).get_neighbors())  # should print (3,2), None, None, (2,3)
+
+print(grid.get_cell_by_coordinates(3, 3).get_cell_above())  # should print 2,3
+print(grid.get_cell_by_coordinates(3, 3).get_cell_in_direction(Direction.UP))  # should print 2,3
+
+
+print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT))
+print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT).value)
