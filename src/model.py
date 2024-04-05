@@ -103,6 +103,7 @@ class HumanInput():
     def __str__(self):
         return f'Human input with {len(self.hints)} hints at uncertainty level {self.u}.'
         
+'''
 
 cell00 = Cell(0, 0, 4)
 cell01 = Cell(0, 1, 4)
@@ -110,7 +111,7 @@ cell01 = Cell(0, 1, 4)
 #print(cell01)
 
 grid = Grid(4)
-'''
+
 for cell in grid.cells:
     print(cell)
 
@@ -126,9 +127,10 @@ print(grid.get_cell_by_coordinates(3, 3).get_neighbors())  # should print (3,2),
 
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT))
 print(grid.cells[15].get_action_to_me_from_neighbor(Direction.RIGHT).value)
-'''
 print(f'me: {grid.cells[5]}')
 print(grid.cells[5].get_actions_to_me_from_all_neighbors())
 
 print(f'me: {grid.cells[0]}')
-print(grid.cells[0].get_actions_to_me_from_all_neighbors())
+for sap in grid.cells[0].get_actions_to_me_from_all_neighbors():
+    print(sap[1].value)
+'''
