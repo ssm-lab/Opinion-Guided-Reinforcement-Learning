@@ -28,7 +28,7 @@ def get_human_input():
 
 def get_advice_matrix(human_input):
     print("get advice from human input")
-    #TODO
+    #TODO: consult human_advice()
 
 
 def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, num_actions):
@@ -114,7 +114,6 @@ def saveData(no_advice_success_rates, advice_success_rates):
     # TODO: save into CSV
     
 def plot(no_advice_success_rates, advice_success_rates):
-    # TODO replace this with data export eventually
     plt.plot(no_advice_success_rates, label='No advice')
     plt.plot(advice_success_rates, label='Advice')
     plt.title(f'Training on a {MAP_NAME} map for {str(MAX_EPISODES)} episodes; is_slippery = {str(SLIPPERY)}.')
@@ -130,7 +129,6 @@ Main
 '''''''''''''''''''''''''''''''''''''''''''''
 human_input = get_human_input()
 assert human_input.map_size == MAP_SIZE
-
 advice = get_advice_matrix(human_input)
 
 # evaluate without advice
