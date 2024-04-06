@@ -90,7 +90,7 @@ def create_human_matrix(num_states, num_actions):
             opinion[state, action] = (0, 0, 1, 1/num_actions)
 
     #read file
-    file = open('main code/files/opinion_tuples.txt', 'r')
+    file = open('src/files/opinion_tuples.txt', 'r')
     content = file.read()
     file.close()
     lines = content.splitlines()
@@ -136,7 +136,7 @@ def create_human_matrix(num_states, num_actions):
             curr_action = pair[1]
             opinion[curr_state, curr_action]= (b, d, u, 1/num_actions)
 
-    opinion = np.save('main code/files/opinion', opinion)
+    opinion = np.save('src/files/opinion', opinion)
 
 def theta_to_prob(theta):
     """
@@ -241,7 +241,7 @@ def human_advice(num_states, num_actions):
 
     # 1b capture human opinion 
     create_human_matrix(num_states, num_actions)
-    opinion = np.load('main code/files/opinion.npy')
+    opinion = np.load('src/files/opinion.npy')
 
     # 2b fusion
     fused = beliefConstraintFusion(policy_cert, opinion)
@@ -249,7 +249,7 @@ def human_advice(num_states, num_actions):
     # 3 convert certainties to policy for agent 
     theta = cert_to_policy(fused)
 
-    np.savetxt('main code/files/human_advised_policy', theta, delimiter= ',')
+    np.savetxt('src/files/human_advised_policy', theta, delimiter= ',')
 
 # policy grad
     
@@ -290,7 +290,7 @@ def discrete_policy_grad(num_states, num_actions, map_size, MAX_EPISODES, slippe
     # train model using human advice if available
     if advice == True: 
         human_advice(num_states, num_actions)
-        theta = np.loadtxt('main code/files/human_advised_policy', delimiter=",")
+        theta = np.loadtxt('src/files/human_advised_policy', delimiter=",")
     else: theta = np.zeros((num_states, num_actions))
 
 

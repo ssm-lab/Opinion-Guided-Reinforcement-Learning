@@ -1,7 +1,6 @@
 import gymnasium as gym
 import numpy as np
 import os
-from experiment import Experiment
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
