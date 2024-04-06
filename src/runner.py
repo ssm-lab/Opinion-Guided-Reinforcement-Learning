@@ -33,28 +33,8 @@ def get_human_input():
     return parser.parse(file)
 
 def get_advice_matrix(human_input):
-    logging.info("get advice from human input")
-
-    advice_matrix = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n), dtype = "f, f, f, f")
-
-    for state in range(ENVIRONMENT.observation_space.n):
-        for action in range(ENVIRONMENT.action_space.n):
-            advice_matrix[state, action] = (0, 0, 1, 1 / ENVIRONMENT.action_space.n)
-
-    for hint in human_input.hints:
-        state_action_pairs = []
-        u = hint.u
-        b = hint.b
-        d = hint.d
-        a = 1 / ENVIRONMENT.action_space.n
-
-        state_action_pairs = (hint.cell.get_actions_to_me_from_all_neighbors())
-        logging.debug(state_action_pairs)
-        for sap in state_action_pairs:
-            logging.debug(sap[0]) # need the state not the cell 
-            action = sap[1].value
-        #    human_input[state, action] = (b, d, u, a)
-
+    # TODO: develop this properly
+    pass
 
 def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, num_actions):
     for t in range(0, len(ep_states)):
