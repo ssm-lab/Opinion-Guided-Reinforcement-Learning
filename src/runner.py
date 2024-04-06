@@ -19,12 +19,9 @@ ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
 
 def get_human_input():
     file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
-
-    with open(file, 'r') as f:
-        lines = len(f.readlines())
-        expectedNumberOfHints = lines - 2
-
-    return Parser().parse(file)
+    parser = Parser()
+    
+    return parser.parse(file)
 
 def get_advice_matrix(human_input):
     print("get advice from human input")
