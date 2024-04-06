@@ -29,3 +29,4 @@ jobs:
           python -m tests.grid_tests
           python -m tests.model_tests
           python -m tests.parser_tests
+          python -m tests.sl_tests

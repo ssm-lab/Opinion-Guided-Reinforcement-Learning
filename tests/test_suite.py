@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 import unittest
 
-from .parser_tests import ParserTests
-from .model_tests import ModelTests
 from .grid_tests import GridTests
+from .model_tests import ModelTests
+from .parser_tests import ParserTests
+from .sl_tests import SLTests
 
 """
 Full test suite
 """
 
 def create_suite():
-    testCases = [ParserTests, ModelTests, GridTests]
+    testCases = [GridTests, ModelTests, ParserTests, SLTests]
     loadedCases = []
     
     for case in testCases:
