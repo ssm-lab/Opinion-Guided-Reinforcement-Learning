@@ -5,9 +5,11 @@ from experiment import Experiment
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
+from datetime import datetime
 
 #Constants
 FILES_PATH = 'src/files'
+RESULTS_PATH = 'src/results'
 NUM_EXPERIMENTS = 10
 MAX_EPISODES = 250
 MAP_SIZE = 8
@@ -137,6 +139,12 @@ def plot(no_advice_success_rates, advice_success_rates):
     plt.xlabel('Iteration')
     plt.ylabel('Success Rate %')
     plt.legend()
+    
+    now = datetime.now()
+    
+    name = f'{MAP_NAME}-e{MAX_EPISODES}-{now.strftime("%Y%m%d-%H%M%S")}'
+    
+    plt.savefig(f'{RESULTS_PATH}/{name}.pdf', format='pdf', bbox_inches='tight')
     plt.show()
 
 
