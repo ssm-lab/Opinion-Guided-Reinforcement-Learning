@@ -6,7 +6,8 @@ A framework for human-informed reinforcement learning by subjective logic
 
 # Repository structure
 
-- [/src](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/src) - Main source code
+- [/src](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/src) - Source code
+- [/tests](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/tests) - Unit tests
 
 # Setup guide
 - Clone this repository.
