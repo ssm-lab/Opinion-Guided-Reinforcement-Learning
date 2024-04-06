@@ -7,7 +7,7 @@ from parser import Parser
 from sklearn.preprocessing import normalize
 
 #Constants
-filesPath = 'src/files'
+FILES_PATH = 'src/files'
 NUM_EXPERIMENTS = 10
 MAX_EPISODES = 250
 MAP_SIZE = 8
@@ -18,7 +18,7 @@ GAMMA = 1
 ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
 
 def get_human_input():
-    file = os.path.abspath(f'{filesPath}/opinions.txt')
+    file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
 
     with open(file, 'r') as f:
         lines = len(f.readlines())
@@ -157,7 +157,8 @@ no_advice_success_rates = evaluate(initial_policy)
 
 # evaluate with advice
 print('running evaluation with advice')
-initial_policy = np.loadtxt('src/files/human_advised_policy', delimiter=",")
+initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
 advice_success_rates =  evaluate(initial_policy)
 
 plot(no_advice_success_rates, advice_success_rates) # TODO: should be saveData(no_advice_success_rates, advice_success_rates)
+print(no_advice_success_rates)
