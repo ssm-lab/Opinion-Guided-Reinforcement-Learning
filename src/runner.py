@@ -6,6 +6,7 @@ from parser import Parser
 from sklearn.preprocessing import normalize
 from datetime import datetime
 import logging
+import sl
 
 #Constants
 FILES_PATH = 'src/files'
@@ -35,14 +36,34 @@ def get_advice_matrix(human_input):
     # TODO: develop this properly
     pass
 
-def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, num_actions):
+def fuseMatrices(matrix1, matrix2):
+    # TODO: this is an untested sketch based on the previous version of the code. Kyanna plz finish this one.
+    num_states = ENVIRONMENT.observation_space.n
+    num_actions = ENVIRONMENT.action_space.n
+    
+    assert(matrix1.shape == matrix2.shape == (num_states, num_actions))
+    
+    fused_matrix = np.zeros((num_states, num_actions), dtype = "f, f, f, f")
+    for state in range(num_states):
+        for action in range(num_actions):
+            opinion1 = [matrix1[state, action][slparam] for slparam in range(4)]
+            opinion2 = [matrix2[state, action][slparam] for slparam in range(4)]
+            
+            fused_opinion = sl.beliefConstraintFusion(opinion1, opinion2)
+            
+            for slparam in range(4):
+                fused_matrix[state, action][slparam] = fused_opinion[slparam]
+    
+    return fused_matrix
+
+def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns):
     for t in range(0, len(ep_states)):
         state = ep_states[t]
         action = ep_actions[t]
         prob = ep_probs[t]
         action_return = ep_returns[t]
 
-        phi = np.zeros([1, num_actions])
+        phi = np.zeros([1, ENVIRONMENT.action_space.n])
         phi[0, action] = 1
 
         score = phi - prob
@@ -58,16 +79,15 @@ def calculate_return(rewards):
     ep_returns = ep_returns[::-1].cumsum()[::-1] / GAMMA**t_steps
     return ep_returns.tolist()
     
-def get_action_probabilities(state, policy, num_actions):
-    logits = np.zeros(num_actions)
-    for action in range(num_actions):
+def get_action_probabilities(state, policy):
+    logits = np.zeros(ENVIRONMENT.action_space.n)
+    for action in range(ENVIRONMENT.action_space.n):
         logit = np.exp(policy[state, action])
         logits[action] = logit
         
     return logits / np.sum(logits)
 
 def discrete_policy_grad(initial_policy):
-    num_actions = ENVIRONMENT.action_space.n
     policy = initial_policy
 
     total_reward, total_successes = [], 0
@@ -80,7 +100,7 @@ def discrete_policy_grad(initial_policy):
         while not terminated and not truncated:
             ep_states.append(state)         # add state to ep_states list
             
-            action_probs = get_action_probabilities(state, policy, num_actions) # pass state thru policy to get action_probs
+            action_probs = get_action_probabilities(state, policy) # pass state thru policy to get action_probs
             ep_probs.append(action_probs)   # add action probabilities to action_probs list
             
             action = np.random.choice(np.array([0, 1, 2, 3]), p=action_probs)   # choose an action
@@ -97,7 +117,7 @@ def discrete_policy_grad(initial_policy):
         total_reward.append(sum(ep_rewards))
 
         # update policy
-        policy = update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, num_actions)
+        policy = update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns)
 
     ENVIRONMENT.close()
 
