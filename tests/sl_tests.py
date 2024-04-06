@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import unittest
 from src import sl
