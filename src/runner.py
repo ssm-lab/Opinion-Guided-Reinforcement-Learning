@@ -16,6 +16,7 @@ SLIPPERY = False
 ALPHA = 0.9
 GAMMA = 1
 ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
+SEED = 100
 
 def get_human_input():
     file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
@@ -84,7 +85,7 @@ def discrete_policy_grad(initial_policy):
 
     total_reward, total_successes = [], 0
     for episode in range(MAX_EPISODES):
-        state = ENVIRONMENT.reset()[0]
+        state = ENVIRONMENT.reset(seed=SEED)[0]
         ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
         terminated, truncated = False, False
 
