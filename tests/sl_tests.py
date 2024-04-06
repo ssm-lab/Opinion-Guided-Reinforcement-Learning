@@ -1,7 +1,8 @@
-import unittest
-import src.sl as sl
-import os
 import numpy as np
+import os
+import unittest
+from src import sl
+
 
 class SLTests(unittest.TestCase):
     

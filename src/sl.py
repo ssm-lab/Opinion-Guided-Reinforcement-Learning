@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 '''
 Belief constraint fusion for two matrices with the same dimensions
 '''

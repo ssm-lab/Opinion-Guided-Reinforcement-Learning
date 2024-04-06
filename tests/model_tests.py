@@ -1,6 +1,7 @@
-import unittest
-from src.model import Hint, Cell
 import os
+import unittest
+from src.model import Cell, Hint
+
 
 class ModelTests(unittest.TestCase):
     

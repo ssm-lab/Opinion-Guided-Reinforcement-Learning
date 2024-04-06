@@ -6,6 +6,7 @@ from .model_tests import ModelTests
 from .parser_tests import ParserTests
 from .sl_tests import SLTests
 
+
 """
 Full test suite
 """

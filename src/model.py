@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Direction(Enum):
     LEFT = 0
     DOWN = 1

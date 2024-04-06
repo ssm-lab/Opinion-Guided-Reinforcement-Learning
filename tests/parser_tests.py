@@ -1,6 +1,7 @@
+import os
 import unittest
 from src.parser import Parser
-import os
+
 
 class ParserTests(unittest.TestCase):
     

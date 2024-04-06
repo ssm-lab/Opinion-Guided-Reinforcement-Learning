@@ -1,12 +1,13 @@
 import gymnasium as gym
+import logging
 import numpy as np
 import os
+import sl
+from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
-from datetime import datetime
-import logging
-import sl
+
 
 #Constants
 FILES_PATH = 'src/files'

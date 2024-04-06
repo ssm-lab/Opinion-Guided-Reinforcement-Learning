@@ -1,7 +1,8 @@
-import unittest
-from src.model import Grid, Cell, Direction
 import os
 import random
+import unittest
+from src.model import Cell, Direction, Grid
+
 
 class GridTests(unittest.TestCase):
     

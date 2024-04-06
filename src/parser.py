@@ -1,5 +1,6 @@
 import re
-from model import Hint, HumanInput, Cell
+from model import Cell, Hint, HumanInput
+
 
 class Parser():
 
