@@ -3,13 +3,13 @@ name: Unit tests
 on:
   push:
     branches:
-      - main
+      - ci-tests
   pull_request:
     branches:
-      - main
+      - ci-tests
   workflow_dispatch:
     branches:
-      - main
+      - ci-tests
 
 jobs:
   build:
