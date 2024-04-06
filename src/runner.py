@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
 from datetime import datetime
+import logging
 
 #Constants
 FILES_PATH = 'src/files'
@@ -20,6 +21,11 @@ GAMMA = 1
 ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
 SEED = 100
 
+
+logging.basicConfig(format='[%(levelname)s] %(message)s')
+logging.getLogger().setLevel(logging.INFO)
+
+
 def get_human_input():
     file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
     parser = Parser()
@@ -27,7 +33,7 @@ def get_human_input():
     return parser.parse(file)
 
 def get_advice_matrix(human_input):
-    print("get advice from human input")
+    logging.info("get advice from human input")
 
     advice_matrix = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n), dtype = "f, f, f, f")
 
@@ -43,9 +49,9 @@ def get_advice_matrix(human_input):
         a = 1 / ENVIRONMENT.action_space.n
 
         state_action_pairs = (hint.cell.get_actions_to_me_from_all_neighbors())
-        print(state_action_pairs)
+        logging.debug(state_action_pairs)
         for sap in state_action_pairs:
-            print(sap[0]) # need the state not the cell 
+            logging.debug(sap[0]) # need the state not the cell 
             action = sap[1].value
         #    human_input[state, action] = (b, d, u, a)
 
@@ -157,15 +163,14 @@ assert human_input.map_size == MAP_SIZE
 advice = get_advice_matrix(human_input)
 
 # evaluate without advice
-print('running evaluation without advice')
+logging.info('running evaluation without advice')
 initial_policy = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n))
 no_advice_success_rates = evaluate(initial_policy)
 
 # evaluate with advice
-print('running evaluation with advice')
+logging.info('running evaluation with advice')
 initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
 advice_success_rates =  evaluate(initial_policy)
 
 save_data(no_advice_success_rates, advice_success_rates)
 plot(no_advice_success_rates, advice_success_rates)
-print(no_advice_success_rates)
