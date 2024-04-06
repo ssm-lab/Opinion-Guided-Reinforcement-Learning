@@ -128,9 +128,13 @@ def evaluate(initial_policy):
         success_rates.append(iteration)
     return success_rates
 
-def saveData(no_advice_success_rates, advice_success_rates):
-    pass
-    # TODO: save into CSV
+def get_file_name():
+    now = datetime.now()
+    return f'{MAP_NAME}-e{MAX_EPISODES}-{now.strftime("%Y%m%d-%H%M%S")}'
+
+def save_data(no_advice_success_rates, advice_success_rates):
+    np.savetxt(f'{RESULTS_PATH}/{get_file_name()}-no-advice.csv', no_advice_success_rates, delimiter=",")
+    np.savetxt(f'{RESULTS_PATH}/{get_file_name()}-advice.csv', advice_success_rates, delimiter=",")
     
 def plot(no_advice_success_rates, advice_success_rates):
     plt.plot(no_advice_success_rates, label='No advice')
@@ -140,11 +144,7 @@ def plot(no_advice_success_rates, advice_success_rates):
     plt.ylabel('Success Rate %')
     plt.legend()
     
-    now = datetime.now()
-    
-    name = f'{MAP_NAME}-e{MAX_EPISODES}-{now.strftime("%Y%m%d-%H%M%S")}'
-    
-    plt.savefig(f'{RESULTS_PATH}/{name}.pdf', format='pdf', bbox_inches='tight')
+    plt.savefig(f'{RESULTS_PATH}/{get_file_name()}.pdf', format='pdf', bbox_inches='tight')
     plt.show()
 
 
@@ -166,5 +166,6 @@ print('running evaluation with advice')
 initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
 advice_success_rates =  evaluate(initial_policy)
 
-plot(no_advice_success_rates, advice_success_rates) # TODO: should be saveData(no_advice_success_rates, advice_success_rates)
+save_data(no_advice_success_rates, advice_success_rates)
+plot(no_advice_success_rates, advice_success_rates)
 print(no_advice_success_rates)
