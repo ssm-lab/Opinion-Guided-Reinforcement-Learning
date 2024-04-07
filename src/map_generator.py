@@ -64,7 +64,7 @@ def create_start(sheet, cell):
     apply_style(sheet, cell, symbol, font, color)
     
 def create_goal(sheet, cell):
-    symbol = 'S'
+    symbol = 'G'
     font = Font(color='000000', bold=True)
     color = PatternFill(start_color='83E28E', end_color='83E28E', fill_type='solid')
     
