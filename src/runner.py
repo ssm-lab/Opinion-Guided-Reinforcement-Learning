@@ -7,6 +7,7 @@ from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
+from model import Grid
 
 
 #Constants
@@ -33,29 +34,24 @@ def get_human_input():
     
     return parser.parse(file)
 
-def get_advice_matrix(human_input):
-    # TODO: develop this properly
-    pass
-
-def fuseMatrices(matrix1, matrix2):
-    # TODO: this is an untested sketch based on the previous version of the code. Kyanna plz finish this one.
-    num_states = ENVIRONMENT.observation_space.n
-    num_actions = ENVIRONMENT.action_space.n
-    
-    assert(matrix1.shape == matrix2.shape == (num_states, num_actions))
-    
-    fused_matrix = np.zeros((num_states, num_actions), dtype = "f, f, f, f")
-    for state in range(num_states):
-        for action in range(num_actions):
-            opinion1 = [matrix1[state, action][slparam] for slparam in range(4)]
-            opinion2 = [matrix2[state, action][slparam] for slparam in range(4)]
+def shapePolicy(policy, human_input):
+    for hint in human_input.hints:
+        cell = hint.cell
+        logging.debug(cell)
+        for sap in cell.get_actions_to_me_from_all_neighbors():
+            neighbor_row, neighbor_col = sap[0]
+            neighbors_sequence_number = neighbor_row*cell.edge_size + neighbor_col
+            action_number = sap[1].value
             
-            fused_opinion = sl.beliefConstraintFusion(opinion1, opinion2)
+            base_action_probability = policy[neighbors_sequence_number][action_number]
+            hinted_opinion = hint.get_binomial_opinion(base_action_probability)
+            fused_opinion = sl.beliefConstraintFusion(sl.probability_to_opinion(base_action_probability), hinted_opinion)
+            fused_probability = sl.opinion_to_probability(fused_opinion)
+            logging.debug(f'fusing action {sap[1]}({action_number}) of policy[{neighbor_row}][{neighbor_col}]=({base_action_probability}) with {hinted_opinion} --> {fused_opinion} -> P={fused_probability}')
             
-            for slparam in range(4):
-                fused_matrix[state, action][slparam] = fused_opinion[slparam]
-    
-    return fused_matrix
+            policy[neighbors_sequence_number][action_number] = fused_probability
+            
+    return policy
 
 def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns):
     for t in range(0, len(ep_states)):
@@ -154,23 +150,41 @@ def plot(no_advice_success_rates, advice_success_rates):
     plt.show()
 
 
+def get_default_policy(world):
+    default_policy = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n)) # TODO: not zeros but 1/[number of neighbors]
+    
+    for cell_number in range(ENVIRONMENT.observation_space.n):
+        cell = world.cells[cell_number]
+        neighbors = cell.get_neighbors()
+        
+        num_neighbors = len([c for c in neighbors if c is not None])
+        neighbor_exists = [0 if n is None else 1 for n in neighbors]
+        probabilities = [n * (1/num_neighbors) for n in neighbor_exists]
+        default_policy[cell_number] = probabilities
+    
+    return default_policy
+    
 
 '''''''''''''''''''''''''''''''''''''''''''''
 Main
 '''''''''''''''''''''''''''''''''''''''''''''
+world = Grid(8)
+logging.debug([cell.get_neighbors() for cell in world.cells])
+default_policy = get_default_policy(world)
+logging.debug(default_policy)
+
 human_input = get_human_input()
 assert human_input.map_size == MAP_SIZE
-advice = get_advice_matrix(human_input)
+shapedPolicy = shapePolicy(default_policy, human_input)
 
 # evaluate without advice
 logging.info('running evaluation without advice')
-initial_policy = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n))
-no_advice_success_rates = evaluate(initial_policy)
+no_advice_success_rates = evaluate(default_policy)
 
 # evaluate with advice
 logging.info('running evaluation with advice')
-initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
-advice_success_rates =  evaluate(initial_policy)
+#initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
+advice_success_rates =  evaluate(shapedPolicy)
 
 save_data(no_advice_success_rates, advice_success_rates)
 plot(no_advice_success_rates, advice_success_rates)

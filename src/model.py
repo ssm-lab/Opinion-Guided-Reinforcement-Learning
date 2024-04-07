@@ -1,5 +1,5 @@
 from enum import Enum
-
+import sl
 
 class Direction(Enum):
     LEFT = 0
@@ -22,6 +22,9 @@ class Grid():
     
     def get_cell_by_coordinates(self, row:int, col:int):
         return self.cells[row*self.edge_size + col]
+        
+    def get_cell_by_sequence_number(self, sequence_number:int):
+        return self.cells[sequence_number]
 
 """
 Represents a cell
@@ -91,8 +94,11 @@ class Hint():
         self.b = round(self.b, 4)
         self.d = round(self.d, 4)
         
-    def project(self):
-        return b + a*u
+    def get_binomial_opinion(self, base_rate):
+        return [self.b, self.d, self.u, base_rate]
+        
+    def project(self, base_rate):
+        return sl.opinion_to_probability([self.b, self.d, self.u, base_rate])
 
 """
 Human input: a collection of hints and the uncertainty parameter

@@ -25,5 +25,28 @@ class SLTests(unittest.TestCase):
         self.assertEqual(fused_opinion[2], 0)
         self.assertAlmostEqual(fused_opinion[3], 0.25, delta=0.001)
         
+    def testProbabilityToOpinionAtZeroUncertainty(self):
+        probability = 1/6
+        
+        opinion = sl.probability_to_opinion(probability)
+        
+        self.assertAlmostEqual(opinion[0], probability)
+        self.assertAlmostEqual(opinion[1], 1-probability)
+        self.assertEqual(opinion[2], 0)
+        self.assertAlmostEqual(opinion[3], probability)
+        
+    def testOpinionToProbabilityAtZeroUncertainty(self):
+        original_probability = 1/6
+        probability = sl.opinion_to_probability([original_probability, 1-original_probability, 0, original_probability])
+        
+        self.assertAlmostEqual(probability, original_probability)
+        
+    def testOpinionToProbabilityAtNonZeroUncertainty(self):
+        original_probability = 1/6
+        uncertainty = 1
+        opinion_based_probability = sl.opinion_to_probability([original_probability, 1-original_probability-uncertainty, uncertainty, original_probability])
+        
+        self.assertTrue(opinion_based_probability >= original_probability)
+        
 if __name__ == "__main__":
     unittest.main()

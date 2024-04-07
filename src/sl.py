@@ -23,5 +23,14 @@ def beliefConstraintFusion(opinion1, opinion2):
     d = 1 - (b + u)
     a = (a1 * (1 - u1) + a2 * (1 - u2)) / (2 - u1 - u2)
     
-    
     return [b, d, u, a]
+    
+def probability_to_opinion(probability, uncertainty = 0):
+    return [probability, (1-probability-uncertainty), uncertainty, probability]
+    
+def opinion_to_probability(opinion):
+    assert(len(opinion) == 4)
+    [b, d, u, a] = opinion
+    assert(b+d+u == 1)
+
+    return b + a*u
