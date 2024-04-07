@@ -176,7 +176,7 @@ if __name__ == '__main__':
     map_tools = MapTools()
     if(options.generate):
         map_tools.generate_map(size, seed)
-    elif(options.render):
+    if(options.render):
         map_tools.render_map(size, seed)
     else:
         raise Exception('Exactly one of [-generate | -render] should be chosen.')
