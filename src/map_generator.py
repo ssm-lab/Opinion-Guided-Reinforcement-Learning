@@ -179,4 +179,4 @@ if __name__ == '__main__':
     if(options.render):
         map_tools.render_map(size, seed)
     else:
-        raise Exception('Exactly one of [-generate | -render] should be chosen.')
+        raise Exception('Either -generate or -render (or both) should be chosen.')
