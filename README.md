@@ -27,3 +27,8 @@ A framework for human-informed reinforcement learning by subjective logic
 # Setup guide
 - Clone this repository.
 - Install requirements via ```pip install -r requirements.txt```.
+
+# How to use
+- Set `SEED` and `SIZE` in `src/map_parser.py` and run `python .\src\map_parser.py`
+- Create an opinion file with the following name: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` (e.g., `opinions-6x6-seed10.txt`)
+- Set the same `SEED` and `SIZE` in `src/runner.py` and run `python .\src\runner.py`
