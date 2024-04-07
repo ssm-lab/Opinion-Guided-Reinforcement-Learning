@@ -119,9 +119,9 @@ def generate_map_from_scratch(filename, size):
     create_start(sheet, index_to_cell(0, 0))
     create_goal(sheet, index_to_cell(size-1, size-1))
     
-    holes = randomize_holes(size=8)
+    holes = randomize_holes(size=SIZE)
     for hole in holes:
-        (row, col) = sequence_to_coordinates(hole, 8)
+        (row, col) = sequence_to_coordinates(hole, SIZE)
         create_hole(sheet, index_to_cell(row, col))
     
     workbook.save(filename=file)
@@ -130,4 +130,5 @@ def generate_map_from_scratch(filename, size):
 Main
 '''''''''''''''''''''''''''''''''''''''''''''
 SEED = 10
-generate_map_from_scratch(f'lake-{SEED}', 8)
+SIZE = 6
+generate_map_from_scratch(f'lake-{SIZE}x{SIZE}-seed{SEED}', SIZE)

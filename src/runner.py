@@ -3,25 +3,29 @@ import logging
 import numpy as np
 import os
 import sl
+import map_parser
 from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
 from model import Grid
 
-
 #Constants
 FILES_PATH = 'src/files'
 RESULTS_PATH = 'src/results'
 NUM_EXPERIMENTS = 10
 MAX_EPISODES = 250
-MAP_SIZE = 8
+MAP_SIZE = 6
+SEED = 10
 MAP_NAME = f'{MAP_SIZE}x{MAP_SIZE}'
 SLIPPERY = False
 ALPHA = 0.9
 GAMMA = 1
-ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
-SEED = 100
+file_name = f'{MAP_SIZE}x{MAP_SIZE}-seed{SEED}'
+map_desc = map_parser.parse_map(f'lake-{file_name}')
+#ENVIRONMENT = gym.make('FrozenLake-v1', map_name=MAP_NAME, is_slippery=SLIPPERY)
+ENVIRONMENT = gym.make('FrozenLake-v1', desc=map_desc, is_slippery=SLIPPERY)
+
 
 
 logging.basicConfig(format='[%(levelname)s] %(message)s')
@@ -43,7 +47,7 @@ def get_default_policy(world):
     return default_policy
 
 def get_human_input():
-    file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
+    file = os.path.abspath(f'{FILES_PATH}/opinions-{file_name}.txt')
     parser = Parser()
     
     return parser.parse(file)
@@ -104,7 +108,7 @@ def discrete_policy_grad(initial_policy):
 
     total_reward, total_successes = [], 0
     for episode in range(MAX_EPISODES):
-        state = ENVIRONMENT.reset(seed=SEED)[0]
+        state = ENVIRONMENT.reset()[0]
         ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
         terminated, truncated = False, False
 
@@ -149,9 +153,9 @@ def get_file_name():
     now = datetime.now()
     return f'{MAP_NAME}-e{MAX_EPISODES}-{now.strftime("%Y%m%d-%H%M%S")}'
 
-def save_data(no_advice_success_rates, advice_success_rates):
-    np.savetxt(f'{RESULTS_PATH}/{get_file_name()}-no-advice.csv', no_advice_success_rates, delimiter=",")
-    np.savetxt(f'{RESULTS_PATH}/{get_file_name()}-advice.csv', advice_success_rates, delimiter=",")
+def save_data(success_rates, advice):
+    file_name = f'{get_file_name()}-advice.csv' if advice else f'{get_file_name()}-no-advice.csv'
+    np.savetxt(f'{RESULTS_PATH}/{file_name}', success_rates, delimiter=",")
     
 def plot(no_advice_success_rates, advice_success_rates):
     plt.plot(no_advice_success_rates, label='No advice')
@@ -168,7 +172,7 @@ def plot(no_advice_success_rates, advice_success_rates):
 '''''''''''''''''''''''''''''''''''''''''''''
 Main
 '''''''''''''''''''''''''''''''''''''''''''''
-world = Grid(8)
+world = Grid(MAP_SIZE)
 logging.debug([cell.get_neighbors() for cell in world.cells])
 default_policy = get_default_policy(world)
 logging.debug(default_policy)
@@ -180,11 +184,12 @@ shapedPolicy = shapePolicy(default_policy, human_input)
 # evaluate without advice
 logging.info('running evaluation without advice')
 no_advice_success_rates = evaluate(default_policy)
+save_data(no_advice_success_rates, advice=False)
 
 # evaluate with advice
 logging.info('running evaluation with advice')
 #initial_policy = np.loadtxt(f'{FILES_PATH}/human_advised_policy', delimiter=",")
 advice_success_rates =  evaluate(shapedPolicy)
+save_data(advice_success_rates, advice=True)
 
-save_data(no_advice_success_rates, advice_success_rates)
 plot(no_advice_success_rates, advice_success_rates)
