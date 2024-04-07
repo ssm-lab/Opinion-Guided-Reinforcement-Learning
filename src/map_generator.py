@@ -1,4 +1,6 @@
 import argparse
+import gymnasium as gym
+import imageio
 import logging
 import os
 import pandas as pd
@@ -72,9 +74,11 @@ class MapTools():
         
         self.apply_style(sheet, cell, symbol, font, color)
 
+    def get_file_name(self, size, seed):
+        return f'lake-{size}x{size}-seed{seed}'
+
     def generate_map(self, size, seed):
-        filename = f'lake-{size}x{size}-seed{seed}'
-        file = os.path.abspath(f'{self._FILES_PATH}/{filename}.xlsx')
+        file = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.xlsx')
         workbook = Workbook(file)
         
         workbook.save(filename=file)
@@ -131,23 +135,48 @@ class MapTools():
             self.create_hole(sheet, self.index_to_cell(row, col))
         
         workbook.save(filename=file)
+        
+    def parse_map(self, size, seed):
+        file = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.xlsx')
+        workbook = load_workbook(filename=file)
+        
+        sheet = workbook.active
+        first_row = sheet[1]
+        size = int(first_row[-1].value)+1
+        
+        map_desc = []
+        for row in sheet[2: size+1]:
+            map_desc.append(''.join([cell.value for cell in row[1:size+1]]))
+        
+        return map_desc
+        
+    def render_map(self, size, seed):
+        map_desc = self.parse_map(size, seed)
+        env = gym.make('FrozenLake-v1', desc=map_desc, render_mode='rgb_array')
+        env.reset()
+        img = env.render()
+        imgfile = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.png')
+        imageio.imwrite(imgfile, img)
+        env.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-generate', action='store_true')
-    parser.add_argument('-parse', action='store_true')
+    parser.add_argument('-render', action='store_true')
     parser.add_argument('-size')
     parser.add_argument('-seed')
 
     options = parser.parse_args()
     
-    assert bool(options.generate) != bool(options.parse), "Exactly one of [-generate | -parse] should be chosen."
     assert options.size
     assert options.seed
-    
     size = int(options.size)
     seed = int(options.seed)
     
     map_tools = MapTools()
     if(options.generate):
         map_tools.generate_map(size, seed)
+    elif(options.render):
+        map_tools.render_map(size, seed)
+    else:
+        raise Exception('Exactly one of [-generate | -render] should be chosen.')
