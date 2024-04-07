@@ -28,6 +28,20 @@ logging.basicConfig(format='[%(levelname)s] %(message)s')
 logging.getLogger().setLevel(logging.INFO)
 
 
+def get_default_policy(world):
+    default_policy = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n)) # TODO: not zeros but 1/[number of neighbors]
+    
+    for cell_number in range(ENVIRONMENT.observation_space.n):
+        cell = world.cells[cell_number]
+        neighbors = cell.get_neighbors()
+        
+        num_neighbors = len([c for c in neighbors if c is not None])
+        neighbor_exists = [0 if n is None else 1 for n in neighbors]
+        probabilities = [n * (1/num_neighbors) for n in neighbor_exists]
+        default_policy[cell_number] = probabilities
+    
+    return default_policy
+
 def get_human_input():
     file = os.path.abspath(f'{FILES_PATH}/opinions.txt')
     parser = Parser()
@@ -53,6 +67,23 @@ def shapePolicy(policy, human_input):
             
     return policy
 
+
+def get_action_probabilities(state, policy):
+    logits = np.zeros(ENVIRONMENT.action_space.n)
+    for action in range(ENVIRONMENT.action_space.n):
+        logit = np.exp(policy[state, action])
+        logits[action] = logit
+        
+    return logits / np.sum(logits)  # TODO: this might be incorrect. Cf. the action probabilityies in get_default_policy()
+    
+def calculate_return(rewards):
+    # https://stackoverflow.com/questions/65233426/discount-reward-in-reinforce-deep-reinforcement-learning-algorithm
+    ep_rewards = np.asarray(rewards)
+    t_steps = np.arange(ep_rewards.size)
+    ep_returns = ep_rewards * GAMMA**t_steps
+    ep_returns = ep_returns[::-1].cumsum()[::-1] / GAMMA**t_steps
+    return ep_returns.tolist()
+    
 def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns):
     for t in range(0, len(ep_states)):
         state = ep_states[t]
@@ -67,22 +98,6 @@ def update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns):
         policy[state, :] = policy[state, :] + ALPHA * action_return * score
 
     return policy
-
-def calculate_return(rewards):
-    # https://stackoverflow.com/questions/65233426/discount-reward-in-reinforce-deep-reinforcement-learning-algorithm
-    ep_rewards = np.asarray(rewards)
-    t_steps = np.arange(ep_rewards.size)
-    ep_returns = ep_rewards * GAMMA**t_steps
-    ep_returns = ep_returns[::-1].cumsum()[::-1] / GAMMA**t_steps
-    return ep_returns.tolist()
-    
-def get_action_probabilities(state, policy):
-    logits = np.zeros(ENVIRONMENT.action_space.n)
-    for action in range(ENVIRONMENT.action_space.n):
-        logit = np.exp(policy[state, action])
-        logits[action] = logit
-        
-    return logits / np.sum(logits)
 
 def discrete_policy_grad(initial_policy):
     policy = initial_policy
@@ -148,21 +163,6 @@ def plot(no_advice_success_rates, advice_success_rates):
     
     plt.savefig(f'{RESULTS_PATH}/{get_file_name()}.pdf', format='pdf', bbox_inches='tight')
     plt.show()
-
-
-def get_default_policy(world):
-    default_policy = np.zeros((ENVIRONMENT.observation_space.n, ENVIRONMENT.action_space.n)) # TODO: not zeros but 1/[number of neighbors]
-    
-    for cell_number in range(ENVIRONMENT.observation_space.n):
-        cell = world.cells[cell_number]
-        neighbors = cell.get_neighbors()
-        
-        num_neighbors = len([c for c in neighbors if c is not None])
-        neighbor_exists = [0 if n is None else 1 for n in neighbors]
-        probabilities = [n * (1/num_neighbors) for n in neighbor_exists]
-        default_policy[cell_number] = probabilities
-    
-    return default_policy
     
 
 '''''''''''''''''''''''''''''''''''''''''''''
