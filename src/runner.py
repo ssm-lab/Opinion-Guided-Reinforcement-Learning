@@ -10,7 +10,6 @@ from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
 from sklearn.preprocessing import normalize
-from model import Grid
 
 class Runner():
 
@@ -38,24 +37,6 @@ class Runner():
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(log_level)
-    
-    @deprecated(reason="Obsolete due to self.get_default_policy()")
-    def get_weighted_default_policy(self, world):
-        num_states = self._ENVIRONMENT.observation_space.n
-        num_actions = self._ENVIRONMENT.action_space.n
-        
-        default_policy = np.zeros((num_states, num_actions))
-        
-        for cell_number in range(num_states):
-            cell = world.cells[cell_number]
-            neighbors = cell.get_neighbors()
-            
-            num_neighbors = len([c for c in neighbors if c is not None])
-            neighbor_exists = [0 if n is None else 1 for n in neighbors]
-            probabilities = [n * (1/num_neighbors) for n in neighbor_exists]
-            default_policy[cell_number] = probabilities
-        
-        return default_policy
         
     def get_default_policy(self):
         num_states = self._ENVIRONMENT.observation_space.n
@@ -92,7 +73,9 @@ class Runner():
                 logging.debug(f'fusing action {sap[1]}({action_number}) of policy[{neighbor_row}][{neighbor_col}]=({base_action_probability}) with {hinted_opinion} --> {fused_opinion} -> P={fused_probability}')
                 
                 policy[neighbors_sequence_number][action_number] = fused_probability
-                
+        
+        policy = normalize(policy, axis=1, norm='l1')
+        
         return policy
 
 
@@ -196,8 +179,6 @@ class Runner():
     def run(self):
         logging.info('run()')
         
-        world = Grid(self._SIZE)
-        #logging.debug([cell.get_neighbors() for cell in world.cells])
         default_policy = self.get_default_policy()
         logging.debug(default_policy)
 
