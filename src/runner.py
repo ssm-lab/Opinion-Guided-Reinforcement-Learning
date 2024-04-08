@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import os
 import sl
+from deprecated import deprecated
 from map_tools import MapTools
 from datetime import datetime
 from matplotlib import pyplot as plt
@@ -37,8 +38,9 @@ class Runner():
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(log_level)
-        
-    def get_default_policy(self, world):
+    
+    @deprecated(reason="Obsolete due to self.get_default_policy()")
+    def get_weighted_default_policy(self, world):
         num_states = self._ENVIRONMENT.observation_space.n
         num_actions = self._ENVIRONMENT.action_space.n
         
@@ -54,6 +56,15 @@ class Runner():
             default_policy[cell_number] = probabilities
         
         return default_policy
+        
+    def get_default_policy(self):
+        num_states = self._ENVIRONMENT.observation_space.n
+        num_actions = self._ENVIRONMENT.action_space.n
+        
+        default_policy = np.full((num_states, num_actions), 1/num_actions)
+        
+        return default_policy
+        
 
     def get_human_input(self):
         file = os.path.abspath(f'{self._FILES_PATH}/opinions-{self._FILE_PATTERN}.txt')
@@ -91,7 +102,7 @@ class Runner():
             logit = np.exp(policy[state, action])
             logits[action] = logit
             
-        return logits / np.sum(logits)  # TODO: this might be incorrect. Cf. the action probabilityies in get_default_policy()
+        return logits / np.sum(logits)  # TODO: this might be incorrect. Cf. the action probabilities in get_default_policy()
         
     def calculate_return(self,rewards):
         # https://stackoverflow.com/questions/65233426/discount-reward-in-reinforce-deep-reinforcement-learning-algorithm
@@ -187,7 +198,7 @@ class Runner():
         
         world = Grid(self._SIZE)
         #logging.debug([cell.get_neighbors() for cell in world.cells])
-        default_policy = self.get_default_policy(world)
+        default_policy = self.get_default_policy()
         logging.debug(default_policy)
 
         human_input = self.get_human_input()
