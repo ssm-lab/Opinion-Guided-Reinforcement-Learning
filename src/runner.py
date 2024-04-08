@@ -25,9 +25,6 @@ class Runner():
         self._ALPHA = 0.9
         self._GAMMA = 1
         
-        #Environment
-        self._ENVIRONMENT = gym.make('FrozenLake-v1', desc=self._MAP_DESC, is_slippery=self._SLIPPERY)
-        
         #File paths
         self._FILES_PATH = 'src/files'
         self._RESULTS_PATH = 'src/results'
@@ -38,14 +35,13 @@ class Runner():
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(log_level)
         
-    def get_default_policy(self):
-        num_states = self._ENVIRONMENT.observation_space.n
-        num_actions = self._ENVIRONMENT.action_space.n
+    def get_default_policy(self, environment):
+        num_states = environment.observation_space.n
+        num_actions = environment.action_space.n
         
         default_policy = np.full((num_states, num_actions), 1/num_actions)
         
         return default_policy
-        
 
     def get_human_input(self):
         file = os.path.abspath(f'{self._FILES_PATH}/opinions-{self._FILE_PATTERN}.txt')
@@ -53,10 +49,10 @@ class Runner():
         
         return parser.parse(file)
 
-    def shapePolicy(self, policy, human_input):
+    def shape_policy(self, policy, human_input):
         for hint in human_input.hints:
             cell = hint.cell
-            logging.debug(cell)
+            #logging.debug(cell)
             for sap in cell.get_actions_to_me_from_all_neighbors():
                 neighbor_row, neighbor_col = sap[0]
                 neighbors_sequence_number = neighbor_row*cell.edge_size + neighbor_col
@@ -70,7 +66,7 @@ class Runner():
                 fused_opinion = sl.beliefConstraintFusion(base_action_opinion, hinted_opinion)
                 fused_probability = sl.opinion_to_probability(fused_opinion)
                 
-                logging.debug(f'fusing action {sap[1]}({action_number}) of policy[{neighbor_row}][{neighbor_col}]=({base_action_probability}) with {hinted_opinion} --> {fused_opinion} -> P={fused_probability}')
+                #logging.debug(f'fusing action {sap[1]}({action_number}) of policy[{neighbor_row}][{neighbor_col}]=({base_action_probability}) with {hinted_opinion} --> {fused_opinion} -> P={fused_probability}')
                 
                 policy[neighbors_sequence_number][action_number] = fused_probability
         
@@ -78,14 +74,13 @@ class Runner():
         
         return policy
 
-
-    def get_action_probabilities(self, state, policy):
-        logits = np.zeros(self._ENVIRONMENT.action_space.n)
-        for action in range(self._ENVIRONMENT.action_space.n):
+    def get_action_probabilities(self, environment, state, policy):
+        logits = np.zeros(environment.action_space.n)
+        for action in range(environment.action_space.n):
             logit = np.exp(policy[state, action])
             logits[action] = logit
             
-        return logits / np.sum(logits)  # TODO: this might be incorrect. Cf. the action probabilities in get_default_policy()
+        return logits / np.sum(logits)
         
     def calculate_return(self,rewards):
         # https://stackoverflow.com/questions/65233426/discount-reward-in-reinforce-deep-reinforcement-learning-algorithm
@@ -95,14 +90,14 @@ class Runner():
         ep_returns = ep_returns[::-1].cumsum()[::-1] / self._GAMMA**t_steps
         return ep_returns.tolist()
         
-    def update_policy(self,policy, ep_states, ep_actions, ep_probs, ep_returns):
+    def update_policy(self, policy, ep_states, ep_actions, ep_probs, ep_returns, environment):
         for t in range(0, len(ep_states)):
             state = ep_states[t]
             action = ep_actions[t]
             prob = ep_probs[t]
             action_return = ep_returns[t]
 
-            phi = np.zeros([1, self._ENVIRONMENT.action_space.n])
+            phi = np.zeros([1, environment.action_space.n])
             phi[0, action] = 1
 
             score = phi - prob
@@ -110,12 +105,20 @@ class Runner():
 
         return policy
 
-    def discrete_policy_grad(self, initial_policy):
-        policy = initial_policy
+    def discrete_policy_grad(self, human_input=None):
+        #Environment
+        environment = gym.make('FrozenLake-v1', desc=self._MAP_DESC, is_slippery=self._SLIPPERY)
+        
+        logging.debug('Generating default policy')
+        policy = self.get_default_policy(environment)
+        if human_input:
+            logging.debug('Shaping policy with human input')
+            policy = self.shape_policy(policy, human_input)
+            logging.debug(policy)
 
         total_reward, total_successes = [], 0
         for episode in range(self._MAX_EPISODES):
-            state = self._ENVIRONMENT.reset()[0]
+            state = environment.reset()[0]
             ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
             terminated, truncated = False, False
 
@@ -123,13 +126,13 @@ class Runner():
             while not terminated and not truncated:
                 ep_states.append(state)         # add state to ep_states list
                 
-                action_probs = self.get_action_probabilities(state, policy) # pass state thru policy to get action_probs
+                action_probs = self.get_action_probabilities(environment, state, policy) # pass state thru policy to get action_probs
                 ep_probs.append(action_probs)   # add action probabilities to action_probs list
                 
                 action = np.random.choice(np.array([0, 1, 2, 3]), p=action_probs)   # choose an action
                 ep_actions.append(action)       # add action to ep_actions list
                 
-                state, reward, terminated, truncated, __ = self._ENVIRONMENT.step(action) # take step in environment
+                state, reward, terminated, truncated, __ = environment.step(action) # take step in environment
                 ep_rewards.append(reward)       # add reward to ep_rewards list
                 
                 total_ep_rewards += reward
@@ -140,19 +143,21 @@ class Runner():
             total_reward.append(sum(ep_rewards))
 
             # update policy
-            policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns)
+            policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
 
-        #self._ENVIRONMENT.close()
+        logging.debug(policy)
+
+        environment.close()
 
         # success rate
         success_rate = (total_successes / self._MAX_EPISODES) * 100
 
         return success_rate
 
-    def evaluate(self, initial_policy):
+    def evaluate(self, human_input=None):
         success_rates = []
         for i in range(self._NUM_EXPERIMENTS):
-            iteration = self.discrete_policy_grad(initial_policy)
+            iteration = self.discrete_policy_grad(human_input)
             success_rates.append(iteration)
         return success_rates
 
@@ -179,22 +184,17 @@ class Runner():
     def run(self):
         logging.info('run()')
         
-        default_policy = self.get_default_policy()
-        logging.debug(default_policy)
-
         human_input = self.get_human_input()
         assert human_input.map_size == self._SIZE #sanity check
-        shaped_policy = self.shapePolicy(default_policy, human_input)
-        logging.debug(shaped_policy)
-
+        
         # evaluate without advice
         logging.info('running evaluation without advice')
-        no_advice_success_rates = self.evaluate(default_policy)
+        no_advice_success_rates = self.evaluate()
         self.save_data(no_advice_success_rates, advice=False)
-
+        
         # evaluate with advice
         logging.info('running evaluation with advice')
-        advice_success_rates =  self.evaluate(shaped_policy)
+        advice_success_rates =  self.evaluate(human_input)
         self.save_data(advice_success_rates, advice=True)
 
         self.plot(no_advice_success_rates, advice_success_rates)
