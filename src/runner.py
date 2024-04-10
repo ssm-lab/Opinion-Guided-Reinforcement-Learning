@@ -31,6 +31,10 @@ class Runner():
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
         
+        results_folder = os.path.abspath(self._RESULTS_PATH)
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(log_level)
