@@ -137,12 +137,14 @@ class Runner():
             logging.debug('Shaping policy with human input')
             policy = self.shape_policy(policy, human_input)
         
-        logging.debug('Initial policy:')
-        logging.debug(policy)
+        #logging.debug('Initial policy:')
+        #logging.debug(policy)
+        
+        logging.debug('Policy initialized. Exploring now.')
 
         policy = self.policy_to_numerical_preferences(policy, environment)
 
-        total_reward = [], 0
+        total_reward = []
         for episode in range(self._MAX_EPISODES):
             state = environment.reset()[0]
             ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
@@ -175,13 +177,14 @@ class Runner():
         environment.close()
 
         # success rate
-        success_rate = (sum(total_ep_rewards) / self._MAX_EPISODES) * 100
+        success_rate = (sum(total_reward) / self._MAX_EPISODES) * 100
 
         return success_rate
 
     def evaluate(self, human_input=None):
         success_rates = []
         for i in range(self._NUM_EXPERIMENTS):
+            logging.info(f'running experiment #{i+1}')
             iteration = self.discrete_policy_grad(human_input)
             success_rates.append(iteration)
         return success_rates
