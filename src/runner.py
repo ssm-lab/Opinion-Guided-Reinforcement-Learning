@@ -140,7 +140,7 @@ class Runner():
         logging.debug('Initial policy:')
         logging.debug(policy)
 
-        #policy = self.policy_to_numerical_preferences(policy, environment)
+        policy = self.policy_to_numerical_preferences(policy, environment)
 
         total_reward, total_successes = [], 0
         for episode in range(self._MAX_EPISODES):
