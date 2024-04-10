@@ -142,7 +142,7 @@ class Runner():
 
         policy = self.policy_to_numerical_preferences(policy, environment)
 
-        total_reward, total_successes = [], 0
+        total_reward = [], 0
         for episode in range(self._MAX_EPISODES):
             state = environment.reset()[0]
             ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
@@ -162,8 +162,6 @@ class Runner():
                 ep_rewards.append(reward)       # add reward to ep_rewards list
                 
                 total_ep_rewards += reward
-                if reward == 1:
-                    total_successes += 1
 
             ep_returns = self.calculate_return(ep_rewards) # calculate episode return & add total episode reward to totalReward
             total_reward.append(sum(ep_rewards))
@@ -177,7 +175,7 @@ class Runner():
         environment.close()
 
         # success rate
-        success_rate = (total_successes / self._MAX_EPISODES) * 100
+        success_rate = (sum(total_ep_rewards) / self._MAX_EPISODES) * 100
 
         return success_rate
 
