@@ -16,8 +16,8 @@ class Runner():
     def __init__(self, size, seed, numexperiments, maxepisodes, log_level=logging.INFO):
         self._SIZE = size
         self._SEED = seed
-        self._NUM_EXPERIMENTS = 10
-        self._MAX_EPISODES = 250
+        self._NUM_EXPERIMENTS = numexperiments
+        self._MAX_EPISODES = maxepisodes
         self._MAP_DESC = MapTools().parse_map(size, seed)
         
         #Hyperparameters
