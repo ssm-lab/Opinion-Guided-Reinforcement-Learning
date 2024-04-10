@@ -136,7 +136,9 @@ class Runner():
         if human_input:
             logging.debug('Shaping policy with human input')
             policy = self.shape_policy(policy, human_input)
-            logging.debug(policy)
+        
+        logging.debug('Initial policy:')
+        logging.debug(policy)
 
         #policy = self.policy_to_numerical_preferences(policy, environment)
 
@@ -168,7 +170,8 @@ class Runner():
 
             # update policy
             policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
-
+            
+        logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
         logging.debug(policy)
 
         environment.close()
