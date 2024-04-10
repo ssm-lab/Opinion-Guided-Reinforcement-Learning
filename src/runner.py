@@ -77,6 +77,24 @@ class Runner():
         policy = normalize(policy, axis=1, norm='l1')
         
         return policy
+    
+    def policy_to_numerical_preferences(self, policy, environment):
+        num_states = environment.observation_space.n
+        num_actions = environment.action_space.n
+
+        theta = np.zeros((num_states, num_actions))
+
+        for state in range(num_states):
+            mu = policy[state]
+            log_sum = 0 
+            for action in range(num_actions):
+                log_sum += np.log(mu[action])
+                c = (-1 / num_actions) * log_sum
+
+        for action in range(num_actions):
+            theta[state, action] = np.log(mu[action]) + c
+
+        return theta
 
     def get_action_probabilities(self, environment, state, policy):
         logits = np.zeros(environment.action_space.n)
@@ -119,6 +137,8 @@ class Runner():
             logging.debug('Shaping policy with human input')
             policy = self.shape_policy(policy, human_input)
             logging.debug(policy)
+
+        #policy = self.policy_to_numerical_preferences(policy, environment)
 
         total_reward, total_successes = [], 0
         for episode in range(self._MAX_EPISODES):
