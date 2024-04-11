@@ -91,8 +91,8 @@ class Runner():
                 log_sum += np.log(mu[action])
                 c = (-1 / num_actions) * log_sum
 
-        for action in range(num_actions):
-            theta[state, action] = np.log(mu[action]) + c
+            for action in range(num_actions):
+                theta[state, action] = np.log(mu[action]) + c
 
         return theta
 
