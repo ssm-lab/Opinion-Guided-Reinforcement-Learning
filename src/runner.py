@@ -3,12 +3,14 @@ import gymnasium as gym
 import logging
 import numpy as np
 import os
+import pandas as pd
 import sl
 from deprecated import deprecated
 from map_tools import MapTools
 from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
+from scipy.stats import wilcoxon
 from sklearn.preprocessing import normalize
 
 class Runner():
@@ -145,13 +147,17 @@ class Runner():
         policy = self.policy_to_numerical_preferences(policy, environment)
 
         total_reward = []
+        steps_taken = []
         for episode in range(self._MAX_EPISODES):
             state = environment.reset()[0]
             ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
             terminated, truncated = False, False
+            
+            i = 0
 
             # gather trajectory
             while not terminated and not truncated:
+                i += 1
                 ep_states.append(state)         # add state to ep_states list
                 
                 action_probs = self.get_action_probabilities(environment, state, policy) # pass state thru policy to get action_probs
@@ -167,6 +173,8 @@ class Runner():
 
             ep_returns = self.calculate_return(ep_rewards) # calculate episode return & add total episode reward to totalReward
             total_reward.append(sum(ep_rewards))
+            
+            steps_taken.append((i, sum(total_reward)))
 
             # update policy
             policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
@@ -179,35 +187,84 @@ class Runner():
         # success rate
         success_rate = (sum(total_reward) / self._MAX_EPISODES) * 100
 
-        return success_rate
+        return success_rate, steps_taken
 
     def evaluate(self, human_input=None):
         success_rates = []
+        steps = []
         for i in range(self._NUM_EXPERIMENTS):
             logging.info(f'running experiment #{i+1}')
-            iteration = self.discrete_policy_grad(human_input)
-            success_rates.append(iteration)
-        return success_rates
-
-    def get_file_name(self):
+            success_rate, steps_taken = self.discrete_policy_grad(human_input)
+            success_rates.append(success_rate)
+            steps.append(steps_taken)
+        return success_rates, steps
+    
+    def get_file_name(self, extension, advice_explicit=False, u_explicit=False, human_input=None, extra = None):
         now = datetime.now()
-        return f'{self._RESULTS_PATH}/{self._MAP_NAME}-e{self._MAX_EPISODES}-{now.strftime("%Y%m%d-%H%M%S")}'
-
-    def save_data(self, success_rates, advice):
-        file_name = f'{self.get_file_name()}-advice.csv' if advice else f'{self.get_file_name()}-no-advice.csv'
-        np.savetxt(f'{file_name}', success_rates, delimiter=",")
         
-    def plot(self, no_advice_success_rates, advice_success_rates):
+        file_name = f'{self._RESULTS_PATH}/{self._MAP_NAME}-seed{self._SEED}-ep{self._MAX_EPISODES}-ex{self._NUM_EXPERIMENTS}'
+        
+        file_name = '-'.join([file_name, now.strftime("%Y%m%d-%H%M%S")])
+        
+        #data files might want to make this explicit, but plots that combine advised and vanilla agents might not
+        if advice_explicit:
+            if human_input is not None:
+                file_name = '-'.join([file_name, 'advice'])
+            else:
+                file_name = '-'.join([file_name, 'no-advice'])
+                
+        if u_explicit and human_input is not None:
+            u = round(human_input.u, 4)
+            file_name = '-'.join([file_name, f'u-{u}'])
+        
+        if extra is not None:
+            file_name = '-'.join([file_name, extra])
+        
+        file_name = '.'.join([file_name, extension])
+        
+        return file_name
+    
+    def save_data(self, success_rates, human_input=None):
+        file_name = f'{self.get_file_name(extension="csv", advice_explicit=True, u_explicit=True, human_input=human_input)}'
+
+        np.savetxt(f'{file_name}', success_rates, delimiter=",")
+    
+    def plot_success_rate(self, no_advice_success_rates, advice_success_rates, human_input):
         logging.getLogger().setLevel(logging.INFO)
         plt.plot(no_advice_success_rates, label='No advice')
         plt.plot(advice_success_rates, label='Advice')
-        plt.title(f'Training on a {self._MAP_NAME} map for {str(self._MAX_EPISODES)} episodes; is_slippery = {str(self._SLIPPERY)}.')
+        plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
         plt.xlabel('Iteration')
         plt.ylabel('Success Rate %')
         plt.legend()
         
-        plt.savefig(f'{self.get_file_name()}.pdf', format='pdf', bbox_inches='tight')
-        plt.show()
+        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="SUCCESSRATE")}'
+        
+        plt.savefig(filename, format='pdf', bbox_inches='tight')
+        #plt.show()
+        
+    def plot_steps(self, all_steps, human_input):
+        logging.debug(f'all_steps: {all_steps}')
+        w = wilcoxon(all_steps.iloc[:, 0], all_steps.iloc[:, 1])
+        logging.debug(f'Wilcoxon: {w}')
+        
+        logging.getLogger().setLevel(logging.INFO)
+        
+        fig = plt.figure()
+        
+        ax = fig.add_subplot(111)
+        ax.boxplot(all_steps)
+        
+        ax.set_title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; ; u={round(human_input.u, 4)}; p={round(w.pvalue, 4)}.')
+        ax.set_xlabel('Mode')
+        ax.set_ylabel('Steps')
+        ax.set_xticklabels(all_steps.columns)
+        
+        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="STEPS")}'
+        
+        plt.savefig(filename, format='pdf', bbox_inches='tight')
+        #plt.show()
+        
     
     def run(self):
         logging.info('run()')
@@ -217,15 +274,27 @@ class Runner():
         
         # evaluate without advice
         logging.info('running evaluation without advice')
-        no_advice_success_rates = self.evaluate()
-        self.save_data(no_advice_success_rates, advice=False)
+        no_advice_success_rates, no_advice_steps = self.evaluate()
+        self.save_data(no_advice_success_rates)
         
         # evaluate with advice
         logging.info('running evaluation with advice')
-        advice_success_rates =  self.evaluate(human_input)
-        self.save_data(advice_success_rates, advice=True)
+        advice_success_rates, advice_steps =  self.evaluate(human_input)
+        self.save_data(advice_success_rates, human_input)
+        
+        #logging.debug(f'No advice step stats: {no_advice_steps}')
+        #logging.debug(f'Advised step stats: {advice_steps}')
+        
+        u = human_input.u
+        
+        self.plot_success_rate(no_advice_success_rates, advice_success_rates, human_input)
+        
+        all_steps = pd.DataFrame({
+            'noadvice': [steps for x in no_advice_steps for (steps, reward) in x],
+            'advice': [steps for x in advice_steps for (steps, reward) in x]})
 
-        self.plot(no_advice_success_rates, advice_success_rates)
+        
+        self.plot_steps(all_steps, human_input)
         
 
 if __name__ == '__main__':
