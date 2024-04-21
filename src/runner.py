@@ -180,25 +180,30 @@ class Runner():
             # update policy
             policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
             
-        logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
-        logging.debug(softmax(policy, axis = 1))
+        #logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
+        #logging.debug(softmax(policy, axis = 1))
 
         environment.close()
 
         # success rate
         success_rate = (sum(total_reward) / self._MAX_EPISODES) * 100
 
-        return success_rate, steps_taken
+        # cumulative reward
+        cumulative_reward = np.cumsum(total_reward)
+
+        return success_rate, steps_taken, cumulative_reward
 
     def evaluate(self, human_input=None):
         success_rates = []
         steps = []
+        cumulative_rewards = []
         for i in range(self._NUM_EXPERIMENTS):
             logging.info(f'running experiment #{i+1}')
-            success_rate, steps_taken = self.discrete_policy_grad(human_input)
+            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(human_input)
             success_rates.append(success_rate)
             steps.append(steps_taken)
-        return success_rates, steps
+            cumulative_rewards.append(cumulative_reward)
+        return success_rates, steps, cumulative_rewards
     
     def get_file_name(self, extension, advice_explicit=False, u_explicit=False, human_input=None, extra = None):
         now = datetime.now()
@@ -266,7 +271,19 @@ class Runner():
         plt.savefig(filename, format='pdf', bbox_inches='tight')
         #plt.show()
         
-    
+    def plot_cumulative_rewards(self, all_cumulative_rewards, human_input):
+        plt.figure(3)
+        plt.plot(all_cumulative_rewards.index.values, all_cumulative_rewards['noadvice'], label = 'No advice')
+        plt.plot(all_cumulative_rewards.index.values, all_cumulative_rewards['advice'], label = 'Advice')
+        plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
+        plt.xlabel('Episode')
+        plt.ylabel('Cumulative Reward')
+        plt.legend()
+
+        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="CUMULATIVEREWARD")}'
+
+        plt.show()
+
     def run(self):
         logging.info('run()')
         
@@ -275,16 +292,19 @@ class Runner():
         
         # evaluate without advice
         logging.info('running evaluation without advice')
-        no_advice_success_rates, no_advice_steps = self.evaluate()
+        no_advice_success_rates, no_advice_steps, no_advice_cumulative_rewards = self.evaluate()
         self.save_data(no_advice_success_rates)
         
         # evaluate with advice
         logging.info('running evaluation with advice')
-        advice_success_rates, advice_steps =  self.evaluate(human_input)
+        advice_success_rates, advice_steps, advice_cumulative_rewards =  self.evaluate(human_input)
         self.save_data(advice_success_rates, human_input)
         
         #logging.debug(f'No advice step stats: {no_advice_steps}')
         #logging.debug(f'Advised step stats: {advice_steps}')
+
+        #logging.debug(f'No advice cumulative rewards: {no_advice_cumulative_rewards}')
+        #logging.debug(f'Advised cumulative rewards: {advice_cumulative_rewards}')
         
         u = human_input.u
         
@@ -294,10 +314,13 @@ class Runner():
             'noadvice': [steps for x in no_advice_steps for (steps, reward) in x],
             'advice': [steps for x in advice_steps for (steps, reward) in x]})
 
-        
         self.plot_steps(all_steps, human_input)
-        
 
+        all_cumulative_rewards = pd.DataFrame({
+            'noadvice': [rew for x in no_advice_cumulative_rewards for rew in x],
+            'advice': [rew for x in advice_cumulative_rewards for rew in x]})
+        
+        self.plot_cumulative_rewards(all_cumulative_rewards, human_input) 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-size')
