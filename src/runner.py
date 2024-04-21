@@ -11,6 +11,7 @@ from datetime import datetime
 from matplotlib import pyplot as plt
 from parser import Parser
 from scipy.stats import wilcoxon
+from scipy.special import softmax
 from sklearn.preprocessing import normalize
 
 class Runner():
@@ -180,7 +181,7 @@ class Runner():
             policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
             
         logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
-        logging.debug(policy)
+        logging.debug(softmax(policy, axis = 1))
 
         environment.close()
 
