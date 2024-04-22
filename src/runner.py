@@ -272,17 +272,24 @@ class Runner():
         #plt.show()
         
     def plot_cumulative_rewards(self, all_cumulative_rewards, human_input):
-        plt.figure(3)
-        plt.plot(all_cumulative_rewards.index.values, all_cumulative_rewards['noadvice'], label = 'No advice')
-        plt.plot(all_cumulative_rewards.index.values, all_cumulative_rewards['advice'], label = 'Advice')
-        plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
-        plt.xlabel('Episode')
-        plt.ylabel('Cumulative Reward')
-        plt.legend()
+        for i in range(self._NUM_EXPERIMENTS):
+            start = i * self._MAX_EPISODES
+            end = (i + 1) * self._MAX_EPISODES
+            df = all_cumulative_rewards.iloc[start:end]
+
+            plt.figure()
+            plt.plot(df.index.values, df['noadvice'], label = 'No advice')
+            plt.plot(df.index.values, df['advice'], label = 'Advice')
+            plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
+            plt.xlabel('Episode')
+            plt.ylabel('Cumulative Reward')
+            plt.legend()
 
         filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="CUMULATIVEREWARD")}'
+        plt.savefig(filename, format='pdf', bbox_inches='tight')
 
         plt.show()
+
 
     def run(self):
         logging.info('run()')
