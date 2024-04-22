@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import os
 import pandas as pd
+import shutil
 import sl
 from deprecated import deprecated
 from map_tools import MapTools
@@ -31,12 +32,17 @@ class Runner():
         #File paths
         self._FILES_PATH = 'src/files'
         self._RESULTS_PATH = 'src/results'
+        self._EXPERIMENTS_PATH = 'src/experiments'
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
         
         results_folder = os.path.abspath(self._RESULTS_PATH)
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
+            
+        experiment_folder = os.path.abspath(self._EXPERIMENTS_PATH)
+        if not os.path.exists(experiment_folder):
+            os.makedirs(experiment_folder)        
         
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
@@ -237,6 +243,21 @@ class Runner():
             cumulative_rewards.append(cumulative_reward)
         return success_rates, steps, cumulative_rewards
     
+    def get_experiment_file_name(self, agent, u=None):
+        folder_name = f'{self._EXPERIMENTS_PATH}/{agent}/{self._MAX_EPISODES}'
+        folder = os.path.abspath(folder_name)
+        if not os.path.exists(folder):
+            os.makedirs(folder)   
+        
+        file_name = f'{folder_name}/{self._MAP_NAME}-seed{self._SEED}'
+        
+        if u is not None:
+            file_name = '-'.join([file_name, f'u-{u}'])
+            
+        file_name = '.'.join([file_name, 'csv'])
+        
+        return file_name
+    
     def get_file_name(self, extension, advice_explicit=False, u_explicit=False, human_input=None, extra = None):
         now = datetime.now()
         
@@ -262,9 +283,10 @@ class Runner():
         
         return file_name
     
-    def save_data(self, success_rates, human_input=None):
-        file_name = f'{self.get_file_name(extension="csv", advice_explicit=True, u_explicit=True, human_input=human_input)}'
-
+    def save_data(self, success_rates, human_input=None, file_name=None):
+        if file_name is None:
+            file_name = self.get_file_name(extension="csv", advice_explicit=True, u_explicit=True, human_input=human_input)
+        
         np.savetxt(f'{file_name}', success_rates, delimiter=",")
     
     def plot_success_rate(self, no_advice_success_rates, advice_success_rates, human_input):
@@ -321,9 +343,40 @@ class Runner():
         plt.savefig(filename, format='pdf', bbox_inches='tight')
 
         plt.show()
+        
+    def run_experiment(self):
+        logging.info(f'Preparing output folder')
+        
+        logging.info(f'======{self._MAX_EPISODES} EPISODES======')
+        
+        human_input = self.get_human_input()
+        assert human_input.map_size == self._SIZE #sanity check
+        
+        logging.info('\t running 1 evaluation with random agent')
+        # success_rates, steps, cumulative_rewards = self.evaluate(random=True)   # TODO: uncomment
+        results = []    # TODO: results = whatever you want to save
+        file_name = self.get_experiment_file_name('random')
+        self.save_data(results, file_name=file_name)
+        
+        logging.info('\t running 1 evaluation without advice')
+        # success_rates, steps, cumulative_rewards = self.evaluate()   # TODO: uncomment
+        results = []    # TODO: results = whatever you want to save
+        file_name = self.get_experiment_file_name('noadvice')
+        self.save_data(results, file_name=file_name)
+        
+        for episodenum in range(0, self._NUM_EXPERIMENTS):
+            logging.info(f'\t running evaluation #{episodenum} with adviced agent')
+            for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
+                logging.info(f'\t\t running evaluation adviced agent with u={u}')
+                human_input.u = u
+                # success_rates, steps, cumulative_rewards = self.evaluate(human_input)   # TODO: uncomment
+                results = []    # TODO: results = whatever you want to save
+                file_name = self.get_experiment_file_name('advice', u)
+                self.save_data(results, file_name=file_name)
+        
+        logging.info(f'======EXPERIMENT DONE======\n')
 
-
-    def run(self):
+    def run(self, plot=False):
         logging.info('run()')
         
         human_input = self.get_human_input()
@@ -345,27 +398,31 @@ class Runner():
         #logging.debug(f'No advice cumulative rewards: {no_advice_cumulative_rewards}')
         #logging.debug(f'Advised cumulative rewards: {advice_cumulative_rewards}')
         
-        u = human_input.u
+        if(plot):
+            u = human_input.u
+            
+            self.plot_success_rate(no_advice_success_rates, advice_success_rates, human_input)
         
-        self.plot_success_rate(no_advice_success_rates, advice_success_rates, human_input)
-        
-        all_steps = pd.DataFrame({
-            'noadvice': [steps for x in no_advice_steps for (steps, reward) in x],
-            'advice': [steps for x in advice_steps for (steps, reward) in x]})
+            all_steps = pd.DataFrame({
+                'noadvice': [steps for x in no_advice_steps for (steps, reward) in x],
+                'advice': [steps for x in advice_steps for (steps, reward) in x]})
 
-        self.plot_steps(all_steps, human_input)
+            self.plot_steps(all_steps, human_input)
 
-        all_cumulative_rewards = pd.DataFrame({
-            'noadvice': [rew for x in no_advice_cumulative_rewards for rew in x],
-            'advice': [rew for x in advice_cumulative_rewards for rew in x]})
-        
-        self.plot_cumulative_rewards(all_cumulative_rewards, human_input) 
+            all_cumulative_rewards = pd.DataFrame({
+                'noadvice': [rew for x in no_advice_cumulative_rewards for rew in x],
+                'advice': [rew for x in advice_cumulative_rewards for rew in x]})
+            
+            self.plot_cumulative_rewards(all_cumulative_rewards, human_input) 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-experiment', action='store_true')
     parser.add_argument('-size')
     parser.add_argument('-seed')
     parser.add_argument('-numexperiments')
     parser.add_argument('-maxepisodes')
+    parser.add_argument('-plot', action='store_true')
     parser.add_argument(
         "-log",
         "--log",
@@ -377,11 +434,6 @@ if __name__ == '__main__':
         
     options = parser.parse_args()
     
-    assert options.size
-    assert options.seed
-    size = int(options.size)
-    seed = int(options.seed)
-    
     levels = {
         'critical': logging.CRITICAL,
         'error': logging.ERROR,
@@ -392,8 +444,24 @@ if __name__ == '__main__':
     }
     level = levels.get(options.log.lower())
     
-    numexperiments = int(options.numexperiments) if(options.numexperiments) else 10
-    maxepisodes = int(options.maxepisodes) if(options.maxepisodes) else 250
     
-    runner = Runner(size, seed, numexperiments, maxepisodes, level)
-    runner.run()
+    if(options.experiment):
+        size = 6
+        seed = 40
+        numexperiments = 30
+        
+        for maxepisodes in [250, 500, 1000]:
+            runner = Runner(size, seed, numexperiments, maxepisodes, level)
+            runner.run_experiment()
+        
+    else:
+        assert options.size
+        assert options.seed
+        size = int(options.size)
+        seed = int(options.seed)
+        
+        numexperiments = int(options.numexperiments) if(options.numexperiments) else 10
+        maxepisodes = int(options.maxepisodes) if(options.maxepisodes) else 250
+        
+        runner = Runner(size, seed, numexperiments, maxepisodes, level)
+        runner.run(plot=options.plot)
