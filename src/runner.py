@@ -130,58 +130,90 @@ class Runner():
 
         return policy
 
-    def discrete_policy_grad(self, human_input=None):
+    def discrete_policy_grad(self, human_input=None, is_random = False):
         #Environment
         environment = gym.make('FrozenLake-v1', desc=self._MAP_DESC, is_slippery=self._SLIPPERY)
-        
-        logging.debug('Generating default policy')
-        policy = self.get_default_policy(environment)
-        if human_input:
-            logging.debug('Shaping policy with human input')
-            policy = self.shape_policy(policy, human_input)
-        
-        #logging.debug('Initial policy:')
-        #logging.debug(policy)
-        
-        logging.debug('Policy initialized. Exploring now.')
 
-        policy = self.policy_to_numerical_preferences(policy, environment)
+        if is_random == True:
+            logging.debug('Agent policy is random')
 
-        total_reward = []
-        steps_taken = []
-        for episode in range(self._MAX_EPISODES):
-            state = environment.reset()[0]
-            ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
-            terminated, truncated = False, False
+            total_reward = []
+            steps_taken = []
+            for episode in range(self._MAX_EPISODES):
+                state = environment.reset()[0]
+                ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
+                terminated, truncated = False, False
+                
+                i = 0
+
+                # gather trajectory
+                while not terminated and not truncated:
+                    i += 1
+                    ep_states.append(state)         # add state to ep_states list
+                    
+                    action = environment.action_space.sample() # choose an action randomly
+                    ep_actions.append(action)       # add action to ep_actions list
+                    
+                    state, reward, terminated, truncated, __ = environment.step(action) # take step in environment
+                    ep_rewards.append(reward)       # add reward to ep_rewards list
+                    
+                    total_ep_rewards += reward
+
+                ep_returns = self.calculate_return(ep_rewards) # calculate episode return & add total episode reward to totalReward
+                total_reward.append(sum(ep_rewards))
+                
+                steps_taken.append((i, sum(total_reward)))
+
+        else:
+            logging.debug('Agent policy is not random')
+            logging.debug('Generating default policy')
+            policy = self.get_default_policy(environment)
+            if human_input:
+                logging.debug('Shaping policy with human input')
+                policy = self.shape_policy(policy, human_input)
             
-            i = 0
-
-            # gather trajectory
-            while not terminated and not truncated:
-                i += 1
-                ep_states.append(state)         # add state to ep_states list
-                
-                action_probs = self.get_action_probabilities(environment, state, policy) # pass state thru policy to get action_probs
-                ep_probs.append(action_probs)   # add action probabilities to action_probs list
-                
-                action = np.random.choice(np.array([0, 1, 2, 3]), p=action_probs)   # choose an action
-                ep_actions.append(action)       # add action to ep_actions list
-                
-                state, reward, terminated, truncated, __ = environment.step(action) # take step in environment
-                ep_rewards.append(reward)       # add reward to ep_rewards list
-                
-                total_ep_rewards += reward
-
-            ep_returns = self.calculate_return(ep_rewards) # calculate episode return & add total episode reward to totalReward
-            total_reward.append(sum(ep_rewards))
+            #logging.debug('Initial policy:')
+            #logging.debug(policy)
             
-            steps_taken.append((i, sum(total_reward)))
+            logging.debug('Policy initialized. Exploring now.')
 
-            # update policy
-            policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
-            
-        #logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
-        #logging.debug(softmax(policy, axis = 1))
+            policy = self.policy_to_numerical_preferences(policy, environment)
+
+            total_reward = []
+            steps_taken = []
+            for episode in range(self._MAX_EPISODES):
+                state = environment.reset()[0]
+                ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
+                terminated, truncated = False, False
+                
+                i = 0
+
+                # gather trajectory
+                while not terminated and not truncated:
+                    i += 1
+                    ep_states.append(state)         # add state to ep_states list
+                    
+                    action_probs = self.get_action_probabilities(environment, state, policy) # pass state thru policy to get action_probs
+                    ep_probs.append(action_probs)   # add action probabilities to action_probs list
+                    
+                    action = np.random.choice(np.array([0, 1, 2, 3]), p=action_probs)   # choose an action
+                    ep_actions.append(action)       # add action to ep_actions list
+                    
+                    state, reward, terminated, truncated, __ = environment.step(action) # take step in environment
+                    ep_rewards.append(reward)       # add reward to ep_rewards list
+                    
+                    total_ep_rewards += reward
+
+                ep_returns = self.calculate_return(ep_rewards) # calculate episode return & add total episode reward to totalReward
+                total_reward.append(sum(ep_rewards))
+                
+                steps_taken.append((i, sum(total_reward)))
+
+                # update policy
+                policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
+                
+            #logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
+            #logging.debug(softmax(policy, axis = 1))
 
         environment.close()
 
