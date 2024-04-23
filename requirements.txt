@@ -1,8 +1,11 @@
-gymnasium==0.29.1
+--extra-index-url https://pypi.org/project/gymnasium/0.29.1/
+--extra-index-url https://pypi.org/project/scikit-learn/1.4.1.post1/
+
+gymnasium
 imageio==2.34.0
 matplotlib==3.5.3
 numpy==1.23.2
 openpyxl==3.1.2
 pandas==1.4.3
-scikit_learn==1.4.2
+scikit_learn
 scipy==1.9.0
