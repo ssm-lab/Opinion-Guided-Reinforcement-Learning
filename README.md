@@ -6,17 +6,17 @@ A framework for human-informed reinforcement learning by subjective logic
 
 # Repository structure
 
+- [/input](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/input) - Input files: maps and human opinions
 - [/src](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/src) - Source code
   - Main
     - `runner.py` - Main module
     - `model.py` - Model classes
-  - Hint/SL modules
-    - `parser.py` - Human hint parser. Parses hints from `files/opinions.txt`
-    - `files/opinions(...).txt` - Human input. Naming convention: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` Format:
+  - Opinion/SL modules
+    - `opinion_parser.py` - Parses human input from `/input`. Input file naming convention: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` Format:
       ```
       grid size [1]
       uncertainty [1]
-      hints [*]
+      opinions [*]
       ```
     - `sl.py` - Subjective logic utilities
   - Map module
