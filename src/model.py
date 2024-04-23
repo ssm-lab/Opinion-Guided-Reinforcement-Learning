@@ -38,6 +38,9 @@ class Cell():
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
         
+    def __eq__(self, other):
+        return self.row == other.row and self.col == other.col
+        
     def get_sequence_number_in_grid(self):
         return self.row*self.edge_size + self.col
         
@@ -72,7 +75,19 @@ class Cell():
         return [sap for sap in state_action_pairs if None not in sap]
 
 """
-Represents an opinion about a cell
+Represents an fact about a cell (F/H/G in Frozen Lake)
+"""
+class Fact():
+
+    def __init__(self, cell:Cell, value:int):
+        self.cell = cell
+        self.value = value
+        
+    def __str__(self):
+        return 'Fact(cell: {}, value: {}).'.format(self.cell, self.value)
+
+"""
+Represents an opinion about a cell ([-2,2] in Frozen Lake)
 """
 class Opinion():
 
@@ -81,7 +96,7 @@ class Opinion():
         self.value = value
         
     def __str__(self):
-        return 'Opinion(cell: {}, value: {}). (At uncertainty = {}. =>belief = {}, =>disbelief = {}.)'.format(self.cell, self.value, self.u, self.b, self.d)
+        return 'Opinion(cell: {}, value: {}).'.format(self.cell, self.value)
         
     def normalize_belief_for_uncertainty(self):
         # these are hard-coded values to be replaced when we generalize the framework
