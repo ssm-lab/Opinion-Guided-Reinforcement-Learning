@@ -14,7 +14,7 @@ class MapTools():
 
     def __init__(self, input_folder):
         self._FILES_PATH = input_folder
-        self._HOLE_SEED = 100
+        #self._HOLE_SEED = 100
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(logging.INFO)
 
@@ -78,6 +78,10 @@ class MapTools():
         return f'lake-{size}x{size}-seed{seed}'
 
     def generate_map(self, size, seed):
+        folder = os.path.abspath(self._FILES_PATH)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            
         file = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.xlsx')
         workbook = Workbook(file)
         
