@@ -244,7 +244,7 @@ class Runner():
             experiment_folder_name = f'{complete_folder_name}/{max_episodes}'
             self.create_folder(experiment_folder_name)
             
-            logging.info(f'======{self._MAX_EPISODES} EPISODES======')
+            logging.info(f'======{max_episodes} EPISODES======')
             
             logging.info('\t running 1 evaluation with random agent')
             success_rates, steps, cumulative_rewards = self.evaluate(max_episodes, is_random=True)
@@ -311,10 +311,10 @@ if __name__ == '__main__':
     }
     level = levels.get(options.log.lower())
 
-    size = 8
-    seed = 50
-    numexperiments = 4
-    maxepisodes = [5, 10]
+    size = 16
+    seed = 40
+    numexperiments = 30
+    maxepisodes = [1000, 2000]
     
     runner = Runner(size, seed, numexperiments, maxepisodes, level)
     runner.run_experiment()
