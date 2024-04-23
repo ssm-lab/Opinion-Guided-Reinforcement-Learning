@@ -7,7 +7,6 @@ import pandas as pd
 import shutil
 import sl
 from model import Advice
-from deprecated import deprecated
 from map_tools import MapTools
 from datetime import datetime
 from matplotlib import pyplot as plt
