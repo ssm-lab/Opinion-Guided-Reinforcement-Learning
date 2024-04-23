@@ -136,7 +136,7 @@ class Runner():
 
         return policy
 
-    def discrete_policy_grad(self, human_input=None, is_random = False):
+    def discrete_policy_grad(self, human_input=None, is_random=False):
         #Environment
         environment = gym.make('FrozenLake-v1', desc=self._MAP_DESC, is_slippery=self._SLIPPERY)
 
@@ -231,13 +231,13 @@ class Runner():
 
         return success_rate, steps_taken, cumulative_reward
 
-    def evaluate(self, human_input=None):
+    def evaluate(self, human_input=None, is_random=False):
         success_rates = []
         steps = []
         cumulative_rewards = []
         for i in range(self._NUM_EXPERIMENTS):
             logging.info(f'running experiment #{i+1}')
-            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(human_input)
+            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(human_input=human_input, is_random=is_random)
             success_rates.append(success_rate)
             steps.append(steps_taken)
             cumulative_rewards.append(cumulative_reward)
@@ -353,14 +353,14 @@ class Runner():
         assert human_input.map_size == self._SIZE #sanity check
         
         logging.info('\t running 1 evaluation with random agent')
-        # success_rates, steps, cumulative_rewards = self.evaluate(random=True)   # TODO: uncomment
-        results = []    # TODO: results = whatever you want to save
+        success_rates, steps, cumulative_rewards = self.evaluate(is_random=True)
+        results = cumulative_rewards
         file_name = self.get_experiment_file_name('random')
         self.save_data(results, file_name=file_name)
         
         logging.info('\t running 1 evaluation without advice')
-        # success_rates, steps, cumulative_rewards = self.evaluate()   # TODO: uncomment
-        results = []    # TODO: results = whatever you want to save
+        success_rates, steps, cumulative_rewards = self.evaluate()
+        results = cumulative_rewards
         file_name = self.get_experiment_file_name('noadvice')
         self.save_data(results, file_name=file_name)
         
@@ -369,8 +369,8 @@ class Runner():
             for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
                 logging.info(f'\t\t running evaluation adviced agent with u={u}')
                 human_input.u = u
-                # success_rates, steps, cumulative_rewards = self.evaluate(human_input)   # TODO: uncomment
-                results = []    # TODO: results = whatever you want to save
+                success_rates, steps, cumulative_rewards = self.evaluate(human_input)   # TODO: uncomment
+                results = cumulative_rewards
                 file_name = self.get_experiment_file_name('advice', u)
                 self.save_data(results, file_name=file_name)
         
@@ -448,9 +448,9 @@ if __name__ == '__main__':
     if(options.experiment):
         size = 6
         seed = 40
-        numexperiments = 30
+        numexperiments = 8
         
-        for maxepisodes in [250, 500, 1000]:
+        for maxepisodes in [5, 10, 15]:
             runner = Runner(size, seed, numexperiments, maxepisodes, level)
             runner.run_experiment()
         
