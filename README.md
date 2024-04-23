@@ -32,3 +32,15 @@ A framework for human-informed reinforcement learning by subjective logic
 - Create an opinion file with the following name: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` (e.g., `opinions-6x6-seed10.txt`)
 - Run the experiment using `python .\src\runner.py -log [DEBUG_LEVEL]` -- The `[DEBUG_LEVEL]` value is one of the following: `critical`, `error`, `warn`, `warning`, `info`, `debug`.
 - Settings (size, seed, numexperiments, maxepisodes) can be set in `runner.__name__`.
+- Results will be generated into `/experiments`, under a timestamped folder, with the following folder structure:
+  ```
+  - [maxepisodes1]
+    - random
+      - One .csv file named after the map size and seed.
+    - noadvice
+      - One .csv file named after the map size and seed.
+    - advice
+      - Multiple .csv files named after the map size, seed, and the _u_ parameter used in the specific experiment.
+  - [maxepisodes2]
+    - ...
+  ```
