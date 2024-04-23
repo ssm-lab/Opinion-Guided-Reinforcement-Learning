@@ -364,15 +364,15 @@ class Runner():
         file_name = self.get_experiment_file_name('noadvice')
         self.save_data(results, file_name=file_name)
         
-        for episodenum in range(0, self._NUM_EXPERIMENTS):
-            logging.info(f'\t running evaluation #{episodenum} with adviced agent')
-            for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
-                logging.info(f'\t\t running evaluation adviced agent with u={u}')
-                human_input.u = u
-                success_rates, steps, cumulative_rewards = self.evaluate(human_input)   # TODO: uncomment
-                results = cumulative_rewards
-                file_name = self.get_experiment_file_name('advice', u)
-                self.save_data(results, file_name=file_name)
+        #for episodenum in range(0, self._NUM_EXPERIMENTS):
+        #logging.info(f'\t running evaluation #{episodenum} with adviced agent')
+        for u in [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]:
+            logging.info(f'\t\t running evaluation adviced agent with u={u}')
+            human_input.u = u
+            success_rates, steps, cumulative_rewards = self.evaluate(human_input)
+            results = cumulative_rewards
+            file_name = self.get_experiment_file_name('advice', u)
+            self.save_data(results, file_name=file_name)
         
         logging.info(f'======EXPERIMENT DONE======\n')
 
@@ -446,11 +446,11 @@ if __name__ == '__main__':
     
     
     if(options.experiment):
-        size = 6
-        seed = 40
-        numexperiments = 8
+        size = 8
+        seed = 50
+        numexperiments = 30
         
-        for maxepisodes in [5, 10, 15]:
+        for maxepisodes in [250, 500]:
             runner = Runner(size, seed, numexperiments, maxepisodes, level)
             runner.run_experiment()
         
