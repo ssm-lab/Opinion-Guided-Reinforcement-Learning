@@ -74,20 +74,18 @@ class Cell():
 """
 Represents an opinion about a cell
 """
-class Hint():
+class Opinion():
 
-    def __init__(self, cell:Cell, opinion:int, uncertainty:float):
+    def __init__(self, cell:Cell, value:int):
         self.cell = cell
-        self.opinion = opinion
-        self.u = uncertainty
-        self.normalize_belief_for_uncertainty()
+        self.value = value
         
     def __str__(self):
-        return 'Hint(cell: {}, hint: {}). (At uncertainty = {}. =>belief = {}, =>disbelief = {}.)'.format(self.cell, self.opinion, self.u, self.b, self.d)
+        return 'Opinion(cell: {}, value: {}). (At uncertainty = {}. =>belief = {}, =>disbelief = {}.)'.format(self.cell, self.value, self.u, self.b, self.d)
         
     def normalize_belief_for_uncertainty(self):
         # these are hard-coded values to be replaced when we generalize the framework
-        self.b = (self.opinion + 2) * ((1 - self.u)/(4))
+        self.b = (self.value + 2) * ((1 - self.u)/(4))
         self.d = 1 - (self.b + self.u)
         
         # some floating-point issues, as usual with Python
@@ -101,14 +99,31 @@ class Hint():
         return sl.opinion_to_probability([self.b, self.d, self.u, base_rate])
 
 """
-Human input: a collection of hints and the uncertainty parameter
+Human input: a collection of opinions without the level of uncertainty
 """
 class HumanInput():
     
-    def __init__(self, map_size: int, u: float, hints):
+    def __init__(self, map_size: int, opinions):
         self.map_size = map_size
-        self.u = u
-        self.hints = hints
+        self.opinions = opinions
         
     def __str__(self):
-        return f'Human input with {len(self.hints)} hints at uncertainty level {self.u}.'
+        return f'Human input with {len(self.opinions)} opinions.'
+        
+"""
+Advice compiled from human input at a specific level of uncertainty
+"""        
+class Advice():
+    
+    def __init__(self, human_input: HumanInput, u: float):
+        self.opinions = human_input.opinions
+        self.u = u
+        self.compile_advice()
+        
+    def compile_advice(self):
+        for opinion in self.opinions:
+            opinion.u = self.u
+            opinion.normalize_belief_for_uncertainty()
+        
+    def __str__(self):
+        return f'Advice with {len(self.opinions)} opinions.'

@@ -6,11 +6,12 @@ import os
 import pandas as pd
 import shutil
 import sl
+from model import Advice
 from deprecated import deprecated
 from map_tools import MapTools
 from datetime import datetime
 from matplotlib import pyplot as plt
-from parser import Parser
+from opinion_parser import OpinionParser
 from scipy.stats import wilcoxon
 from scipy.special import softmax
 from sklearn.preprocessing import normalize
@@ -22,7 +23,6 @@ class Runner():
         self._SEED = seed
         self._NUM_EXPERIMENTS = numexperiments
         self._MAX_EPISODES = maxepisodes
-        self._MAP_DESC = MapTools().parse_map(size, seed)
         
         #Hyperparameters
         self._SLIPPERY = False
@@ -30,19 +30,17 @@ class Runner():
         self._GAMMA = 1
         
         #File paths
-        self._FILES_PATH = 'src/files'
-        self._RESULTS_PATH = 'src/results'
-        self._EXPERIMENTS_PATH = 'src/experiments'
+        self._INPUT_PATH = './input'
+        self._RESULTS_PATH = './experiments'
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
+        
+        #Map
+        self._MAP_DESC = MapTools(self._INPUT_PATH).parse_map(size, seed)
         
         results_folder = os.path.abspath(self._RESULTS_PATH)
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
-            
-        experiment_folder = os.path.abspath(self._EXPERIMENTS_PATH)
-        if not os.path.exists(experiment_folder):
-            os.makedirs(experiment_folder)        
         
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
@@ -57,14 +55,14 @@ class Runner():
         return default_policy
 
     def get_human_input(self):
-        file = os.path.abspath(f'{self._FILES_PATH}/opinions-{self._FILE_PATTERN}.txt')
-        parser = Parser()
+        file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}.txt')
+        opinion_parser = OpinionParser()
         
-        return parser.parse(file)
+        return opinion_parser.parse(file)
 
-    def shape_policy(self, policy, human_input):
-        for hint in human_input.hints:
-            cell = hint.cell
+    def shape_policy(self, policy, advice):
+        for opinion in advice.opinions:
+            cell = opinion.cell
             #logging.debug(cell)
             for sap in cell.get_actions_to_me_from_all_neighbors():
                 neighbor_row, neighbor_col = sap[0]
@@ -74,12 +72,10 @@ class Runner():
                 base_action_probability = policy[neighbors_sequence_number][action_number]
                 base_action_opinion = sl.probability_to_opinion(base_action_probability)
                 
-                hinted_opinion = hint.get_binomial_opinion(base_rate = base_action_probability) #base rate is set from the environment
+                hinted_opinion = opinion.get_binomial_opinion(base_rate = base_action_probability) #base rate is set from the environment
                 
                 fused_opinion = sl.beliefConstraintFusion(base_action_opinion, hinted_opinion)
                 fused_probability = sl.opinion_to_probability(fused_opinion)
-                
-                #logging.debug(f'fusing action {sap[1]}({action_number}) of policy[{neighbor_row}][{neighbor_col}]=({base_action_probability}) with {hinted_opinion} --> {fused_opinion} -> P={fused_probability}')
                 
                 policy[neighbors_sequence_number][action_number] = fused_probability
         
@@ -136,7 +132,7 @@ class Runner():
 
         return policy
 
-    def discrete_policy_grad(self, human_input=None, is_random=False):
+    def discrete_policy_grad(self, max_episodes, advice=None, is_random=False):
         #Environment
         environment = gym.make('FrozenLake-v1', desc=self._MAP_DESC, is_slippery=self._SLIPPERY)
 
@@ -145,7 +141,7 @@ class Runner():
 
             total_reward = []
             steps_taken = []
-            for episode in range(self._MAX_EPISODES):
+            for episode in range(max_episodes):
                 state = environment.reset()[0]
                 ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
                 terminated, truncated = False, False
@@ -174,9 +170,9 @@ class Runner():
             logging.debug('Agent policy is not random')
             logging.debug('Generating default policy')
             policy = self.get_default_policy(environment)
-            if human_input:
-                logging.debug('Shaping policy with human input')
-                policy = self.shape_policy(policy, human_input)
+            if advice:
+                logging.info(f'Shaping policy with human input at u={advice.u}')
+                policy = self.shape_policy(policy, advice)
             
             #logging.debug('Initial policy:')
             #logging.debug(policy)
@@ -187,7 +183,7 @@ class Runner():
 
             total_reward = []
             steps_taken = []
-            for episode in range(self._MAX_EPISODES):
+            for episode in range(max_episodes):
                 state = environment.reset()[0]
                 ep_states, ep_actions, ep_probs, ep_rewards, total_ep_rewards = [], [], [], [], 0
                 terminated, truncated = False, False
@@ -217,212 +213,85 @@ class Runner():
 
                 # update policy
                 policy = self.update_policy(policy, ep_states, ep_actions, ep_probs, ep_returns, environment)
-                
-            #logging.debug(f'Final policy after {self._MAX_EPISODES} episodes')
-            #logging.debug(softmax(policy, axis = 1))
 
         environment.close()
 
         # success rate
-        success_rate = (sum(total_reward) / self._MAX_EPISODES) * 100
+        success_rate = (sum(total_reward) / max_episodes) * 100
 
         # cumulative reward
         cumulative_reward = np.cumsum(total_reward)
 
         return success_rate, steps_taken, cumulative_reward
 
-    def evaluate(self, human_input=None, is_random=False):
+    def evaluate(self, max_episodes, advice=None, is_random=False):  
         success_rates = []
         steps = []
         cumulative_rewards = []
         for i in range(self._NUM_EXPERIMENTS):
             logging.info(f'running experiment #{i+1}')
-            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(human_input=human_input, is_random=is_random)
+            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(max_episodes, advice=advice, is_random=is_random)
             success_rates.append(success_rate)
             steps.append(steps_taken)
             cumulative_rewards.append(cumulative_reward)
         return success_rates, steps, cumulative_rewards
-    
-    def get_experiment_file_name(self, agent, u=None):
-        folder_name = f'{self._EXPERIMENTS_PATH}/{agent}/{self._MAX_EPISODES}'
+
+    def run_experiment(self):
+        logging.info(f'Preparing output folder')
+        complete_folder_name = f'{self._RESULTS_PATH}/{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        self.create_folder(complete_folder_name)
+        
+        for max_episodes in self._MAX_EPISODES:
+            experiment_folder_name = f'{complete_folder_name}/{max_episodes}'
+            self.create_folder(experiment_folder_name)
+            
+            logging.info(f'======{self._MAX_EPISODES} EPISODES======')
+            
+            logging.info('\t running 1 evaluation with random agent')
+            success_rates, steps, cumulative_rewards = self.evaluate(max_episodes, is_random=True)
+            results = cumulative_rewards
+            self.save_experiment_data(results, experiment_folder_name, 'random')
+            
+            logging.info('\t running 1 evaluation without advice')
+            success_rates, steps, cumulative_rewards = self.evaluate(max_episodes)
+            results = cumulative_rewards
+            self.save_experiment_data(results, experiment_folder_name, 'noadvice')
+            
+            human_input = self.get_human_input()
+            assert human_input.map_size == self._SIZE #sanity check
+            for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
+                logging.info(f'\t\t running evaluation adviced agent with u={u}')
+                advice = Advice(human_input, u)
+                logging.info(f'\t\t advice.u set to {advice.u}')
+                success_rates, steps, cumulative_rewards = self.evaluate(max_episodes, advice=advice)
+                results = cumulative_rewards
+                self.save_experiment_data(results, experiment_folder_name, 'advice', u=u)
+            
+            logging.info(f'======EXPERIMENT DONE======\n')
+            
+    def create_folder(self, folder_name):
         folder = os.path.abspath(folder_name)
         if not os.path.exists(folder):
-            os.makedirs(folder)   
+            os.makedirs(folder)
+    
+    def save_data(self, data, file_name):
+        np.savetxt(f'{file_name}', data, delimiter=",")
+    
+    def save_experiment_data(self, data, root_folder, agent, u=None):
+        folder_name = f'{root_folder}/{agent}'
+        self.create_folder(folder_name)
         
-        file_name = f'{folder_name}/{self._MAP_NAME}-seed{self._SEED}'
-        
+        file_name = f'{folder_name}/{self._FILE_PATTERN}'
         if u is not None:
             file_name = '-'.join([file_name, f'u-{u}'])
             
         file_name = '.'.join([file_name, 'csv'])
         
-        return file_name
-    
-    def get_file_name(self, extension, advice_explicit=False, u_explicit=False, human_input=None, extra = None):
-        now = datetime.now()
-        
-        file_name = f'{self._RESULTS_PATH}/{self._MAP_NAME}-seed{self._SEED}-ep{self._MAX_EPISODES}-ex{self._NUM_EXPERIMENTS}'
-        
-        file_name = '-'.join([file_name, now.strftime("%Y%m%d-%H%M%S")])
-        
-        #data files might want to make this explicit, but plots that combine advised and vanilla agents might not
-        if advice_explicit:
-            if human_input is not None:
-                file_name = '-'.join([file_name, 'advice'])
-            else:
-                file_name = '-'.join([file_name, 'no-advice'])
-                
-        if u_explicit and human_input is not None:
-            u = round(human_input.u, 4)
-            file_name = '-'.join([file_name, f'u-{u}'])
-        
-        if extra is not None:
-            file_name = '-'.join([file_name, extra])
-        
-        file_name = '.'.join([file_name, extension])
-        
-        return file_name
-    
-    def save_data(self, success_rates, human_input=None, file_name=None):
-        if file_name is None:
-            file_name = self.get_file_name(extension="csv", advice_explicit=True, u_explicit=True, human_input=human_input)
-        
-        np.savetxt(f'{file_name}', success_rates, delimiter=",")
-    
-    def plot_success_rate(self, no_advice_success_rates, advice_success_rates, human_input):
-        logging.getLogger().setLevel(logging.INFO)
-        plt.plot(no_advice_success_rates, label='No advice')
-        plt.plot(advice_success_rates, label='Advice')
-        plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
-        plt.xlabel('Iteration')
-        plt.ylabel('Success Rate %')
-        plt.legend()
-        
-        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="SUCCESSRATE")}'
-        
-        plt.savefig(filename, format='pdf', bbox_inches='tight')
-        #plt.show()
-        
-    def plot_steps(self, all_steps, human_input):
-        logging.debug(f'all_steps: {all_steps}')
-        w = wilcoxon(all_steps.iloc[:, 0], all_steps.iloc[:, 1])
-        logging.debug(f'Wilcoxon: {w}')
-        
-        logging.getLogger().setLevel(logging.INFO)
-        
-        fig = plt.figure()
-        
-        ax = fig.add_subplot(111)
-        ax.boxplot(all_steps)
-        
-        ax.set_title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; ; u={round(human_input.u, 4)}; p={round(w.pvalue, 4)}.')
-        ax.set_xlabel('Mode')
-        ax.set_ylabel('Steps')
-        ax.set_xticklabels(all_steps.columns)
-        
-        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="STEPS")}'
-        
-        plt.savefig(filename, format='pdf', bbox_inches='tight')
-        #plt.show()
-        
-    def plot_cumulative_rewards(self, all_cumulative_rewards, human_input):
-        for i in range(self._NUM_EXPERIMENTS):
-            start = i * self._MAX_EPISODES
-            end = (i + 1) * self._MAX_EPISODES
-            df = all_cumulative_rewards.iloc[start:end]
-
-            plt.figure()
-            plt.plot(df.index.values, df['noadvice'], label = 'No advice')
-            plt.plot(df.index.values, df['advice'], label = 'Advice')
-            plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
-            plt.xlabel('Episode')
-            plt.ylabel('Cumulative Reward')
-            plt.legend()
-
-        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="CUMULATIVEREWARD")}'
-        plt.savefig(filename, format='pdf', bbox_inches='tight')
-
-        plt.show()
-        
-    def run_experiment(self):
-        logging.info(f'Preparing output folder')
-        
-        logging.info(f'======{self._MAX_EPISODES} EPISODES======')
-        
-        human_input = self.get_human_input()
-        assert human_input.map_size == self._SIZE #sanity check
-        
-        logging.info('\t running 1 evaluation with random agent')
-        success_rates, steps, cumulative_rewards = self.evaluate(is_random=True)
-        results = cumulative_rewards
-        file_name = self.get_experiment_file_name('random')
-        self.save_data(results, file_name=file_name)
-        
-        logging.info('\t running 1 evaluation without advice')
-        success_rates, steps, cumulative_rewards = self.evaluate()
-        results = cumulative_rewards
-        file_name = self.get_experiment_file_name('noadvice')
-        self.save_data(results, file_name=file_name)
-        
-        #for episodenum in range(0, self._NUM_EXPERIMENTS):
-        #logging.info(f'\t running evaluation #{episodenum} with adviced agent')
-        for u in [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]:
-            logging.info(f'\t\t running evaluation adviced agent with u={u}')
-            human_input.u = u
-            success_rates, steps, cumulative_rewards = self.evaluate(human_input)
-            results = cumulative_rewards
-            file_name = self.get_experiment_file_name('advice', u)
-            self.save_data(results, file_name=file_name)
-        
-        logging.info(f'======EXPERIMENT DONE======\n')
-
-    def run(self, plot=False):
-        logging.info('run()')
-        
-        human_input = self.get_human_input()
-        assert human_input.map_size == self._SIZE #sanity check
-        
-        # evaluate without advice
-        logging.info('running evaluation without advice')
-        no_advice_success_rates, no_advice_steps, no_advice_cumulative_rewards = self.evaluate()
-        self.save_data(no_advice_success_rates)
-        
-        # evaluate with advice
-        logging.info('running evaluation with advice')
-        advice_success_rates, advice_steps, advice_cumulative_rewards =  self.evaluate(human_input)
-        self.save_data(advice_success_rates, human_input)
-        
-        #logging.debug(f'No advice step stats: {no_advice_steps}')
-        #logging.debug(f'Advised step stats: {advice_steps}')
-
-        #logging.debug(f'No advice cumulative rewards: {no_advice_cumulative_rewards}')
-        #logging.debug(f'Advised cumulative rewards: {advice_cumulative_rewards}')
-        
-        if(plot):
-            u = human_input.u
-            
-            self.plot_success_rate(no_advice_success_rates, advice_success_rates, human_input)
-        
-            all_steps = pd.DataFrame({
-                'noadvice': [steps for x in no_advice_steps for (steps, reward) in x],
-                'advice': [steps for x in advice_steps for (steps, reward) in x]})
-
-            self.plot_steps(all_steps, human_input)
-
-            all_cumulative_rewards = pd.DataFrame({
-                'noadvice': [rew for x in no_advice_cumulative_rewards for rew in x],
-                'advice': [rew for x in advice_cumulative_rewards for rew in x]})
-            
-            self.plot_cumulative_rewards(all_cumulative_rewards, human_input) 
+        self.save_data(data, file_name)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-experiment', action='store_true')
-    parser.add_argument('-size')
-    parser.add_argument('-seed')
-    parser.add_argument('-numexperiments')
-    parser.add_argument('-maxepisodes')
-    parser.add_argument('-plot', action='store_true')
+
     parser.add_argument(
         "-log",
         "--log",
@@ -431,7 +300,6 @@ if __name__ == '__main__':
               "Example '--log debug', default='warning'."
               )
         )
-        
     options = parser.parse_args()
     
     levels = {
@@ -443,25 +311,11 @@ if __name__ == '__main__':
         'debug': logging.DEBUG
     }
     level = levels.get(options.log.lower())
+
+    size = 8
+    seed = 50
+    numexperiments = 4
+    maxepisodes = [5, 10]
     
-    
-    if(options.experiment):
-        size = 8
-        seed = 50
-        numexperiments = 30
-        
-        for maxepisodes in [250, 500]:
-            runner = Runner(size, seed, numexperiments, maxepisodes, level)
-            runner.run_experiment()
-        
-    else:
-        assert options.size
-        assert options.seed
-        size = int(options.size)
-        seed = int(options.seed)
-        
-        numexperiments = int(options.numexperiments) if(options.numexperiments) else 10
-        maxepisodes = int(options.maxepisodes) if(options.maxepisodes) else 250
-        
-        runner = Runner(size, seed, numexperiments, maxepisodes, level)
-        runner.run(plot=options.plot)
+    runner = Runner(size, seed, numexperiments, maxepisodes, level)
+    runner.run_experiment()

@@ -12,8 +12,8 @@ from openpyxl.utils import get_column_letter
 
 class MapTools():
 
-    def __init__(self):
-        self._FILES_PATH = 'src/files'
+    def __init__(self, input_folder):
+        self._FILES_PATH = input_folder
         self._HOLE_SEED = 100
         logging.basicConfig(format='[%(levelname)s] %(message)s')
         logging.getLogger().setLevel(logging.INFO)
@@ -173,7 +173,7 @@ if __name__ == '__main__':
     size = int(options.size)
     seed = int(options.seed)
     
-    map_tools = MapTools()
+    map_tools = MapTools('./maps')
     if(options.generate):
         map_tools.generate_map(size, seed)
     if(options.render):
