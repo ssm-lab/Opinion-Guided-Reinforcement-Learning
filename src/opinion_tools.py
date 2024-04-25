@@ -108,7 +108,5 @@ if __name__ == '__main__':
         EveryCellStrategy(size, seed).select_opinions()
     elif(options.generate == 'holes'):
         JustTheHolesStrategy(size, seed).select_opinions()
-    elif(options.generate == 'random'):
-        RandomSampleStrategy(size, seed).select_opinions()
     else:
         raise Error('Invalid argument')
