@@ -235,9 +235,10 @@ class Runner():
             cumulative_rewards.append(cumulative_reward)
         return success_rates, steps, cumulative_rewards
 
-    def run_experiment(self):
+    def run_experiment(self, experiment_name=None):
         logging.info(f'Preparing output folder')
-        complete_folder_name = f'{self._RESULTS_PATH}/{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        main_folder_name = experiment_name if experiment_name is not None else datetime.now().strftime("%Y%m%d-%H%M%S")
+        complete_folder_name = f'{self._RESULTS_PATH}/{main_folder_name}'
         self.create_folder(complete_folder_name)
         
         for max_episodes in self._MAX_EPISODES:
@@ -290,6 +291,8 @@ class Runner():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--name', required=False, type=str)
 
     parser.add_argument(
         "-log",
@@ -311,10 +314,14 @@ if __name__ == '__main__':
     }
     level = levels.get(options.log.lower())
 
-    size = 16
-    seed = 40
+    size = 12
+    seed = 63
     numexperiments = 30
-    maxepisodes = [1000, 2000]
+    maxepisodes = [2000, 5000]
     
+    experiment_name = None
+    if options.name is not None:
+        experiment_name = options.name.lower()
+        
     runner = Runner(size, seed, numexperiments, maxepisodes, level)
-    runner.run_experiment()
+    runner.run_experiment(experiment_name)
