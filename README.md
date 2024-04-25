@@ -21,7 +21,8 @@ A framework for human-informed reinforcement learning by subjective logic
     - `sl.py` - Subjective logic utilities
   - Map module
     - `map_tools.py` - Generator, renderer, and parser for maps. Saves maps under `/files` as `.xslx` files.
-- [/tests](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/tests) - Unit tests
+- [/tests](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/tests) - Unit tests.
+- [/expsetup](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/expsetup) - Input files to the experiments.
 
 # Setup guide
 - Clone this repository.
