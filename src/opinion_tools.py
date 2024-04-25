@@ -25,8 +25,7 @@ class OpinionStrategy(ABC):
                 goal_opinions.append(Opinion(fact.cell, 2))
             elif(fact.value == 'H'):
                 hole_opinions.append(Opinion(fact.cell, -2))
-            elif(fact.value == 'F'):
-                # todo: this is broken here
+            else: #F or S
                 neighboring_holes = len([f for c in [n for n in fact.cell.get_neighbors() if n is not None] for f in self._facts if f.cell.row == c[0] and f.cell.col == c[1] and f.value=='H'])
                 if(neighboring_holes == 0):
                     frozen_opinions.append(Opinion(fact.cell, 1))
@@ -59,12 +58,12 @@ class OpinionStrategy(ABC):
         
         return facts
     
-    def save_opinion_file(self, opinions):
+    def save_opinion_file(self, opinions, strategy_name):
         results_folder = os.path.abspath(self._MAPS_PATH)
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
         
-        with open(f'{self._MAPS_PATH}/opinions-{self._size}x{self._size}-seed{self._seed}.txt', 'w') as file:
+        with open(f'{self._MAPS_PATH}/opinions-{self._size}x{self._size}-seed{self._seed}-{strategy_name}.txt', 'w') as file:
             file.write(f'{self._size}')
             for opinion in opinions:
                 opinion_string = f'\n[{opinion.cell.row},{opinion.cell.col}], {opinion.value:+}'
@@ -74,20 +73,18 @@ class OpinionStrategy(ABC):
 class EveryCellStrategy(OpinionStrategy):
     
     def select_opinions(self):
-        print('Generating hints for all cells')
+        self.save_opinion_file([v for k, vs in self._opinions.items() for v in vs], str(self))
+    
+    def __str__(self):
+        return 'all'    
     
 class JustTheHolesStrategy(OpinionStrategy):
     
     def select_opinions(self):
-        #[print(o) for o in self._opinions['goal']]
-        #[print(o) for o in self._opinions['holes']]
+        self.save_opinion_file(self._opinions['goal']+self._opinions['holes'], str(self))
         
-        self.save_opinion_file(self._opinions['goal']+self._opinions['holes'])
-    
-class RandomSampleStrategy(OpinionStrategy):
-    
-    def select_opinions(self):
-        print('Generating hints for a random sample')
+    def __str__(self):
+        return 'holes'
 
 
 #move opinion_parser here
@@ -96,7 +93,7 @@ class RandomSampleStrategy(OpinionStrategy):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-g', '--generate', required=True, choices=['all', 'holes', 'random'])
+    parser.add_argument('-g', '--generate', required=True, choices=['all', 'holes'])
     parser.add_argument('--size', required=True, type=int)
     parser.add_argument('--seed', required=True, type=int)
 
