@@ -30,7 +30,9 @@ A framework for human-informed reinforcement learning by subjective logic
 # How to use
 - Generate a map by running `python .\src\map_tools.py -generate -render -size [SIZE] -seed [SEED]` -- Replace `[SIZE]` and `[SEED]` with the values (int) you need. The `-render` flag is optional.
 - Create an opinion file with the following name: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` (e.g., `opinions-6x6-seed10.txt`)
-- Run the experiment using `python .\src\runner.py -log [DEBUG_LEVEL]` -- The `[DEBUG_LEVEL]` value is one of the following: `critical`, `error`, `warn`, `warning`, `info`, `debug`.
+- Run the experiment using `python .\src\runner.py`. Optional parameters:
+  - `--log [DEBUG_LEVEL]` -- The `[DEBUG_LEVEL]` value is one of the following: `critical`, `error`, `warn`, `warning`, `info`, `debug`.
+  - `--name [STRING]` -- The name of the experiment based on which the top results folder will be named. If not provided, the folder is named as datetime.now() by formatted as "%Y%m%d-%H%M%S".
 - Settings (size, seed, numexperiments, maxepisodes) can be set in `runner.__name__`.
 - Results will be generated into `/experiments`, under a timestamped folder, with the following folder structure:
   ```
