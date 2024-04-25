@@ -47,3 +47,6 @@ A framework for human-informed reinforcement learning by subjective logic
   - [maxepisodes2]
     - ...
   ```
+## Plotting
+ - Set the following parameters in `.\src\analysis.py`: episodes, size, seed, inputFolder. (Settings are manual currently.)
+ - Run `python .\src\analysis.py`.
