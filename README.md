@@ -15,7 +15,6 @@ A framework for human-informed reinforcement learning by subjective logic
     - `opinion_parser.py` - Parses human input from `/input`. Input file naming convention: `opinions-[SIZE]x[SIZE]-seed[SEED].txt` Format:
       ```
       grid size [1]
-      uncertainty [1]
       opinions [*]
       ```
     - `sl.py` - Subjective logic utilities
