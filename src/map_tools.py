@@ -165,10 +165,10 @@ class MapTools():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-generate', action='store_true')
-    parser.add_argument('-render', action='store_true')
-    parser.add_argument('-size')
-    parser.add_argument('-seed')
+    parser.add_argument('--generate', action='store_true')
+    parser.add_argument('--render', action='store_true')
+    parser.add_argument('--size')
+    parser.add_argument('--seed')
 
     options = parser.parse_args()
     
@@ -183,4 +183,4 @@ if __name__ == '__main__':
     if(options.render):
         map_tools.render_map(size, seed)
     else:
-        raise Exception('Either -generate or -render (or both) should be chosen.')
+        raise Exception('Either --generate or --render (or both) should be chosen.')
