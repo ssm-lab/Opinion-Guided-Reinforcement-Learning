@@ -137,6 +137,7 @@ class Runner():
 
         if is_random == True:
             logging.debug('Agent policy is random')
+            policy = np.zeros((environment.observation_space.n, environment.action_space.n))
 
             total_reward = []
             steps_taken = []
@@ -220,6 +221,11 @@ class Runner():
 
         # cumulative reward
         cumulative_reward = np.cumsum(total_reward)
+
+        # final policy
+        final_policy = softmax(policy, axis = 1)
+        #logging.info("Final Policy")
+        #logging.info(final_policy)
 
         return success_rate, steps_taken, cumulative_reward
 
