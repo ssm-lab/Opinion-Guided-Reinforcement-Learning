@@ -30,16 +30,16 @@ class Runner():
         
         #File paths
         self._INPUT_PATH = './input'
-        self._RESULTS_PATH = './experiments'
+        self._reward_results_PATH = './experiments'
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
         
         #Map
         self._MAP_DESC = MapTools(self._INPUT_PATH).parse_map(size, seed)
         
-        results_folder = os.path.abspath(self._RESULTS_PATH)
-        if not os.path.exists(results_folder):
-            os.makedirs(results_folder)
+        reward_results_folder = os.path.abspath(self._reward_results_PATH)
+        if not os.path.exists(reward_results_folder):
+            os.makedirs(reward_results_folder)
         
         #Logging
         logging.basicConfig(format='[%(levelname)s] %(message)s')
@@ -246,24 +246,32 @@ class Runner():
     def run_experiment(self, experiment_name=None):
         logging.info(f'Preparing output folder')
         main_folder_name = experiment_name if experiment_name is not None else datetime.now().strftime("%Y%m%d-%H%M%S")
-        complete_folder_name = f'{self._RESULTS_PATH}/{main_folder_name}'
+        complete_folder_name = f'{self._reward_results_PATH}/{main_folder_name}'
         self.create_folder(complete_folder_name)
         
         for max_episodes in self._MAX_EPISODES:
-            experiment_folder_name = f'{complete_folder_name}/{max_episodes}'
-            self.create_folder(experiment_folder_name)
+            reward_data_folder_name = f'{complete_folder_name}/{max_episodes}/reward_data'
+            self.create_folder(reward_data_folder_name)
+            policy_data_folder_name = f'{complete_folder_name}/{max_episodes}/policy_data'
+            self.create_folder(policy_data_folder_name)
             
             logging.info(f'======{max_episodes} EPISODES======')
             
             logging.info('\t running 1 evaluation with random agent')
             success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, is_random=True)
-            results = cumulative_rewards
-            self.save_experiment_data(results, experiment_folder_name, 'random')
+            reward_results = cumulative_rewards
+            self.save_experiment_data(reward_results, reward_data_folder_name, 'random')
+
+            policy_results = self.preprocess_policy_data(final_policies)
+            self.save_experiment_data(policy_results, policy_data_folder_name, 'random')
             
             logging.info('\t running 1 evaluation without advice')
             success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes)
-            results = cumulative_rewards
-            self.save_experiment_data(results, experiment_folder_name, 'noadvice')
+            reward_results = cumulative_rewards
+            self.save_experiment_data(reward_results, reward_data_folder_name, 'noadvice')
+
+            policy_results = self.preprocess_policy_data(final_policies)
+            self.save_experiment_data(policy_results, policy_data_folder_name, 'noadvice')
             
             human_input = self.get_human_input()
             assert human_input.map_size == self._SIZE #sanity check
@@ -272,8 +280,11 @@ class Runner():
                 advice = Advice(human_input, u)
                 logging.info(f'\t\t advice.u set to {advice.u}')
                 success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
-                results = cumulative_rewards
-                self.save_experiment_data(results, experiment_folder_name, 'advice', u=u)
+                reward_results = cumulative_rewards
+                self.save_experiment_data(reward_results, reward_data_folder_name, 'advice', u=u)
+
+                policy_results = self.preprocess_policy_data(final_policies)
+                self.save_experiment_data(policy_results, policy_data_folder_name, 'advice', u=u)
             
             logging.info(f'======EXPERIMENT DONE======\n')
             
@@ -296,6 +307,15 @@ class Runner():
         file_name = '.'.join([file_name, 'csv'])
         
         self.save_data(data, file_name)
+
+    def preprocess_policy_data(self, policies_list):
+        policies_arr = np.empty(((len(policies_list)), (self._SIZE**2) * 4)) # maybe find better way to set this 
+
+        for i in range(len(policies_list)):
+            policy = policies_list[i].reshape((policies_list[i].size))
+            policies_arr[i] = policy
+        
+        return policies_arr
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
