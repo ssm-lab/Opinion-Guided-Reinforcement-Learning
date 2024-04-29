@@ -227,19 +227,21 @@ class Runner():
         #logging.info("Final Policy")
         #logging.info(final_policy)
 
-        return success_rate, steps_taken, cumulative_reward
+        return success_rate, steps_taken, cumulative_reward, final_policy
 
     def evaluate(self, max_episodes, advice=None, is_random=False):  
         success_rates = []
         steps = []
         cumulative_rewards = []
+        final_policies = []
         for i in range(self._NUM_EXPERIMENTS):
             logging.info(f'running experiment #{i+1}')
-            success_rate, steps_taken, cumulative_reward = self.discrete_policy_grad(max_episodes, advice=advice, is_random=is_random)
+            success_rate, steps_taken, cumulative_reward, final_policy= self.discrete_policy_grad(max_episodes, advice=advice, is_random=is_random)
             success_rates.append(success_rate)
             steps.append(steps_taken)
             cumulative_rewards.append(cumulative_reward)
-        return success_rates, steps, cumulative_rewards
+            final_policies.append(final_policy)
+        return success_rates, steps, cumulative_rewards, final_policies
 
     def run_experiment(self, experiment_name=None):
         logging.info(f'Preparing output folder')
@@ -254,12 +256,12 @@ class Runner():
             logging.info(f'======{max_episodes} EPISODES======')
             
             logging.info('\t running 1 evaluation with random agent')
-            success_rates, steps, cumulative_rewards = self.evaluate(max_episodes, is_random=True)
+            success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, is_random=True)
             results = cumulative_rewards
             self.save_experiment_data(results, experiment_folder_name, 'random')
             
             logging.info('\t running 1 evaluation without advice')
-            success_rates, steps, cumulative_rewards = self.evaluate(max_episodes)
+            success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes)
             results = cumulative_rewards
             self.save_experiment_data(results, experiment_folder_name, 'noadvice')
             
@@ -269,7 +271,7 @@ class Runner():
                 logging.info(f'\t\t running evaluation adviced agent with u={u}')
                 advice = Advice(human_input, u)
                 logging.info(f'\t\t advice.u set to {advice.u}')
-                success_rates, steps, cumulative_rewards = self.evaluate(max_episodes, advice=advice)
+                success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
                 results = cumulative_rewards
                 self.save_experiment_data(results, experiment_folder_name, 'advice', u=u)
             
