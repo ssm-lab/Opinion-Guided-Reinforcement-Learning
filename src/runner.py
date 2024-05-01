@@ -345,7 +345,7 @@ if __name__ == '__main__':
     size = 12
     seed = 63
     numexperiments = 30
-    maxepisodes = [2000, 5000]
+    maxepisodes = [5000, 7500, 10000]
     
     experiment_name = None
     if options.name is not None:
