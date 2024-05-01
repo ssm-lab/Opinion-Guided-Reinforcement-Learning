@@ -1,22 +1,22 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-episodes = 5000
+episodes = 10000
 size = 12
 seed = 63
 filename = f'{size}x{size}-seed{seed}'
-inputFolder = './experiments/20240423-174520'
+inputFolder = './experiments/human5'
 outputFolder = './analysis-output'
 
 def loadData():
-    df_random = pd.read_csv(f'{inputFolder}/{episodes}/random/{filename}.csv', header=None)
-    df_no_advice = pd.read_csv(f'{inputFolder}/{episodes}/noadvice/{filename}.csv', header=None)
-    df_advice_00 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-0.01.csv', header=None)
-    df_advice_02 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-0.2.csv', header=None)
-    df_advice_04 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-0.4.csv', header=None)
-    df_advice_06 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-0.6.csv', header=None)
-    df_advice_08 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-0.8.csv', header=None)
-    df_advice_10 = pd.read_csv(f'{inputFolder}/{episodes}/advice/{filename}-u-1.0.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/noadvice/{filename}.csv', header=None)
+    df_advice_00 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-0.01.csv', header=None)
+    df_advice_02 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-0.2.csv', header=None)
+    df_advice_04 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-0.4.csv', header=None)
+    df_advice_06 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-0.6.csv', header=None)
+    df_advice_08 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-0.8.csv', header=None)
+    df_advice_10 = pd.read_csv(f'{inputFolder}/{episodes}/reward_data/advice/{filename}-u-1.0.csv', header=None)
     return df_random, df_no_advice, df_advice_00, df_advice_02, df_advice_04, df_advice_06, df_advice_08, df_advice_10
     
     
@@ -32,6 +32,7 @@ def cumulative_reward():
     for idx, df in enumerate(dfs):
         ax = df.mean().plot(label=dfs_names[idx])
         
+    plt.yscale('log')
     plt.xlabel('Episode')
     plt.ylabel('Cumulative Reward')
     plt.legend()
