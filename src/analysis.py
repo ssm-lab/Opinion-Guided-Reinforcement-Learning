@@ -175,8 +175,6 @@ if __name__ == '__main__':
         )
     options = parser.parse_args()
     
-    print(options)
-    
     levels = {
         'critical': logging.CRITICAL,
         'error': logging.ERROR,
