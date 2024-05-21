@@ -81,7 +81,7 @@ def cumulative_reward():
             
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
-            plt.legend()
+            plt.legend(fontsize='14')
             #plt.show()
             
             logging.info('\tSave linear plot')
@@ -92,87 +92,101 @@ def cumulative_reward():
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
 
 def heatmap():
-
     folder_name = 'heatmaps'
     os.mkdir(f'{resultsPath}/{folder_name}')
     
-    for episode_number in episodes:
-        logging.info(f'Running analysis heatmap with episode_number {episode_number}')
+    for experiment_kind in ExperimentKind:
+        experiment_kind = experiment_kind.value
+        
+        logging.info(f'Running analysis heatmaps with experiment kind {experiment_kind}')
+        
+        os.mkdir(f'{resultsPath}/{folder_name}/{experiment_kind}')
     
-        dfs = loadData(episode_number, DataKind.POLICY)
-        
-        logging.debug(dfs['advice_00'])
-        df = dfs['advice_00'].mean().to_frame() # TODO: should process every dataframe (rand, unadvised, and every advised (every level of u))
-        
-        jss = []
-        for i in range(0, 144):
-            jss.append([i, i, i, i])
-        cellids = [j for js in jss for j in js]
-        
-        df.insert(0, 'cellid', cellids)
-        df.columns.values[1] = 'prob'
-        
-        dss = []
-        for d in range(0, 144):
-            dss.append(['←', '↓', '→', '↑'])
-            #dss.append(['L', 'D', 'R', 'U'])
-        directions = [d for ds in dss for d in ds]
-        
-        df['direction'] = directions
-        
-        logging.debug(df)
-        
-        df = df.sort_values('prob', ascending=False).drop_duplicates(['cellid'])
-        df = df.sort_values('cellid', ascending=True).reset_index(drop=True)
-        #df = df.drop(['cellid'], axis=1)
-        
-        size = 12
-        seed = 63
-        
-        df = df.assign(row = lambda x: (x['cellid'] // 12))
-        df = df.assign(col = lambda x: (x['cellid'] % 12))
-        
-        map_description = MapTools(experiments_input_path).parse_map(size, seed)
-        logging.debug(map_description)
-        
-        terminals = []
-        for rid, row in enumerate(map_description):
-            for cell in range(0, len(row)):
-                #logging.debug(row[cell])
-                if row[cell] in ('H', 'G'):
-                    terminals.append(size*rid+cell)
-                    
-        for t in terminals:
-            df.loc[t, 'prob'] = 0.0
-            df.loc[t, 'direction'] = ''
+        for episode_number in episodes:
+            logging.info(f'Running analysis heatmap with episode_number {episode_number}')
             
-        df = df.loc[df['prob'] !=0.25]
-        df = df.loc[df['prob'] !=0.0]
-        
-        logging.debug(df)
-        
-        result = df.pivot(index='row', columns='col', values='prob')
-        logging.debug(result)
-        
-        directions = df.pivot(index='row', columns='col', values='direction')
-        logging.debug(directions)
-
-        sns.heatmap(
-            result,
-            linewidths=0.001,
-            linecolor='gray',
-            annot=directions,
-            fmt='',
-            cmap=sns.color_palette("Blues", as_cmap=True),
-            vmin=0.0,
-            vmax=1.0,
-            xticklabels=[],
-            yticklabels=[],
-            annot_kws={"fontsize": "x-large"}
-        )
-        #plt.show()
-        logging.info('\tSave heatmap')
-        savefig(f'{folder_name}/heatmap-{episode_number}')
+            dfs = loadData(experiment_kind, episode_number, DataKind.POLICY)
+            
+            #logging.debug(dfs['advice_00'])
+            
+            for advice_type, data_frame in dfs.items():
+                print(advice_type)
+            
+                #df = dfs['advice_00'].mean().to_frame() # TODO: should process every dataframe (rand, unadvised, and every advised (every level of u))
+                df = data_frame.mean().to_frame()
+                
+                jss = []
+                for i in range(0, 144):
+                    jss.append([i, i, i, i])
+                cellids = [j for js in jss for j in js]
+                
+                df.insert(0, 'cellid', cellids)
+                df.columns.values[1] = 'prob'
+                
+                dss = []
+                for d in range(0, 144):
+                    dss.append(['←', '↓', '→', '↑'])
+                    #dss.append(['L', 'D', 'R', 'U'])
+                directions = [d for ds in dss for d in ds]
+                
+                df['direction'] = directions
+                
+                logging.debug(df)
+                
+                df = df.sort_values('prob', ascending=False).drop_duplicates(['cellid'])
+                df = df.sort_values('cellid', ascending=True).reset_index(drop=True)
+                #df = df.drop(['cellid'], axis=1)
+                
+                size = 12
+                seed = 63
+                
+                df = df.assign(row = lambda x: (x['cellid'] // 12))
+                df = df.assign(col = lambda x: (x['cellid'] % 12))
+                
+                map_description = MapTools(experiments_input_path).parse_map(size, seed)
+                logging.debug(map_description)
+                
+                terminals = []
+                for rid, row in enumerate(map_description):
+                    for cell in range(0, len(row)):
+                        #logging.debug(row[cell])
+                        if row[cell] in ('H', 'G'):
+                            terminals.append(size*rid+cell)
+                            
+                for t in terminals:
+                    df.loc[t, 'prob'] = 0.0
+                    df.loc[t, 'direction'] = ''
+                    
+                df = df.loc[df['prob'] !=0.25]
+                df = df.loc[df['prob'] !=0.0]
+                
+                logging.debug(df)
+                
+                result = df.pivot(index='row', columns='col', values='prob')
+                logging.debug(result)
+                
+                directions = df.pivot(index='row', columns='col', values='direction')
+                logging.debug(directions)
+                
+                plt.clf()
+                
+                sns.heatmap(
+                    result,
+                    linewidths=0.001,
+                    linecolor='gray',
+                    annot=directions,
+                    fmt='',
+                    cmap=sns.color_palette("Blues", as_cmap=True),
+                    vmin=0.0,
+                    vmax=1.0,
+                    xticklabels=[],
+                    yticklabels=[],
+                    annot_kws={"fontsize": "x-large"}
+                )
+                #plt.show()
+                logging.info('\tSave heatmap')
+                savefig(f'{folder_name}/{experiment_kind}/heatmap-{advice_type}-{episode_number}')
+                
 
 
 if __name__ == '__main__':
