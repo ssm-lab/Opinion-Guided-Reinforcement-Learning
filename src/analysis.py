@@ -10,7 +10,7 @@ import shutil
 import logging
 
 episodes = [5000, 7500, 10000]
-episodes = [7500]
+#episodes = [7500]
 size = 12
 seed = 63
 filename = f'{size}x{size}-seed{seed}'
@@ -51,6 +51,9 @@ def cumulative_reward():
     #print('hello from cumulative_reward')
     #return
     
+    folder_name = 'cumulative_reward'
+    os.mkdir(f'{resultsPath}/{folder_name}')
+    
     for episode_number in episodes:
         logging.info(f'Running analysis cumulative_reward with episode_number {episode_number}')
         
@@ -72,14 +75,16 @@ def cumulative_reward():
         #plt.show()
         
         logging.info('\tSave linear plot')
-        savefig(f'cumulative_reward-{episode_number}-linear')
+        savefig(f'{folder_name}/cumulative_reward-{episode_number}-linear')
         
         logging.info('\tSave log plot')
         plt.yscale('log')
-        savefig(f'cumulative_reward-{episode_number}-log')
+        savefig(f'{folder_name}/cumulative_reward-{episode_number}-log')
 
 def heatmap():
-    return
+
+    folder_name = 'heatmaps'
+    os.mkdir(f'{resultsPath}/{folder_name}')
     
     for episode_number in episodes:
         logging.info(f'Running analysis heatmap with episode_number {episode_number}')
@@ -157,7 +162,7 @@ def heatmap():
         )
         #plt.show()
         logging.info('\tSave heatmap')
-        savefig(f'heatmap-{episode_number}')
+        savefig(f'{folder_name}/heatmap-{episode_number}')
 
 
 if __name__ == '__main__':
