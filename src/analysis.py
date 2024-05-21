@@ -14,23 +14,29 @@ episodes = [5000, 7500, 10000]
 size = 12
 seed = 63
 filename = f'{size}x{size}-seed{seed}'
-inputFolder = './experiments/02-pilot-full/human5'
+inputFolder = './experiments/02-full'
 resultsPath = './analysis-output'
 experiments_input_path = './input'
 
 class DataKind(Enum):
     REWARD = 'reward'
     POLICY = 'policy'
+    
+class ExperimentKind(Enum):
+    SYNTHETIC_ALL = 'all'
+    SYNTHETIC_HOLES = 'holes'
+    HUMAN_5 = 'human5'
+    HUMAN_10 = 'human10'
 
-def loadData(episode_number, data_kind):
-    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
-    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
-    df_advice_00 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.01.csv', header=None)
-    df_advice_02 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.2.csv', header=None)
-    df_advice_04 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.4.csv', header=None)
-    df_advice_06 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.6.csv', header=None)
-    df_advice_08 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.8.csv', header=None)
-    df_advice_10 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
+def loadData(experiment_kind, episode_number, data_kind):
+    df_random = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_advice_00 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.01.csv', header=None)
+    df_advice_02 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.2.csv', header=None)
+    df_advice_04 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.4.csv', header=None)
+    df_advice_06 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.6.csv', header=None)
+    df_advice_08 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.8.csv', header=None)
+    df_advice_10 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
     
     return {
         'random': df_random,
@@ -46,40 +52,44 @@ def loadData(episode_number, data_kind):
 def savefig(plot_name):
     plt.gcf().tight_layout()
     plt.savefig(f'{resultsPath}/{plot_name}.pdf')
-    
+
 def cumulative_reward():
-    #print('hello from cumulative_reward')
-    #return
-    
     folder_name = 'cumulative_reward'
     os.mkdir(f'{resultsPath}/{folder_name}')
     
-    for episode_number in episodes:
-        logging.info(f'Running analysis cumulative_reward with episode_number {episode_number}')
+    for experiment_kind in ExperimentKind:
+        experiment_kind = experiment_kind.value
         
-        dfs = loadData(episode_number, DataKind.REWARD)
+        logging.info(f'Running analysis cumulative_reward with experiment kind {experiment_kind}')
         
-        fig = plt.figure()
-        ax = plt.gca()
-        
-        for df_name, df in dfs.items():
-            mean = df.mean()
-            #std = df.std()
-            x = np.arange(len(mean))
-            plt.plot(x, mean, label=df_name)
-            #plt.fill_between(x, mean - std, mean + std, alpha=0.2)
-        
-        plt.xlabel('Episode')
-        plt.ylabel('Cumulative Reward')
-        plt.legend()
-        #plt.show()
-        
-        logging.info('\tSave linear plot')
-        savefig(f'{folder_name}/cumulative_reward-{episode_number}-linear')
-        
-        logging.info('\tSave log plot')
-        plt.yscale('log')
-        savefig(f'{folder_name}/cumulative_reward-{episode_number}-log')
+        os.mkdir(f'{resultsPath}/{folder_name}/{experiment_kind}')
+    
+        for episode_number in episodes:
+            logging.info(f'Running analysis cumulative_reward with episode_number {episode_number}')
+            
+            dfs = loadData(experiment_kind, episode_number, DataKind.REWARD)
+            
+            fig = plt.figure()
+            ax = plt.gca()
+            
+            for df_name, df in dfs.items():
+                mean = df.mean()
+                #std = df.std()
+                x = np.arange(len(mean))
+                plt.plot(x, mean, label=df_name)
+                #plt.fill_between(x, mean - std, mean + std, alpha=0.2)
+            
+            plt.xlabel('Episode')
+            plt.ylabel('Cumulative Reward')
+            plt.legend()
+            #plt.show()
+            
+            logging.info('\tSave linear plot')
+            savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-linear')
+            
+            logging.info('\tSave log plot')
+            plt.yscale('log')
+            savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
 
 def heatmap():
 
