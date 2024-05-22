@@ -9,8 +9,8 @@ import os
 import shutil
 import logging
 
-episodes = [5000, 7500, 10000]
-#episodes = [7500]
+#episodes = [5000, 7500, 10000]
+episodes = [10000]
 size = 12
 seed = 63
 filename = f'{size}x{size}-seed{seed}'
@@ -29,8 +29,10 @@ class ExperimentKind(Enum):
     HUMAN_10 = 'human10'
 
 def loadData(experiment_kind, episode_number, data_kind):
-    df_random = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
-    df_no_advice = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    #df_random = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/all/10000/{data_kind.value}_data/random/{filename}.csv', header=None)
+    #df_no_advice = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/all/10000/{data_kind.value}_data/noadvice/{filename}.csv', header=None) # TODO: this breaks the 5k and 7.5k charts a bit
     df_advice_00 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.01.csv', header=None)
     df_advice_02 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.2.csv', header=None)
     df_advice_04 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.4.csv', header=None)
@@ -51,7 +53,7 @@ def loadData(experiment_kind, episode_number, data_kind):
     
 def savefig(plot_name):
     plt.gcf().tight_layout()
-    plt.savefig(f'{resultsPath}/{plot_name}.pdf')
+    plt.savefig(f'{resultsPath}/{plot_name}.pdf', bbox_inches='tight', pad_inches=0.01)
 
 def cumulative_reward():
     folder_name = 'cumulative_reward'
@@ -172,7 +174,7 @@ def heatmap():
                 
                 plt.clf()
                 
-                sns.heatmap(
+                ax = sns.heatmap(
                     result,
                     linewidths=0.001,
                     linecolor='gray',
@@ -186,11 +188,12 @@ def heatmap():
                     yticklabels=[],
                     annot_kws={"fontsize": "x-large"}
                 )
+                ax.axis('off')
                 plt.xlabel('')
                 plt.ylabel('')
                 #plt.show()
                 logging.info('\tSave heatmap')
-                savefig(f'{folder_name}/{experiment_kind}/heatmap-{advice_type}-{episode_number}')
+                savefig(f'{folder_name}/{experiment_kind}/heatmap-{experiment_kind}-{advice_type}-{episode_number}')
                 
 
 
