@@ -81,13 +81,15 @@ def cumulative_reward():
             
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
-            plt.legend(fontsize='14')
+            legend_labels = ['Random', 'No advice', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
+            plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
             #plt.show()
             
             logging.info('\tSave linear plot')
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-linear')
             
             logging.info('\tSave log plot')
+            plt.legend(labels = legend_labels, fontsize='14', loc = 'lower right')
             plt.yscale('log')
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
 
@@ -174,6 +176,7 @@ def heatmap():
                     result,
                     linewidths=0.001,
                     linecolor='gray',
+                    square=True,
                     annot=directions,
                     fmt='',
                     cmap=sns.color_palette("Blues", as_cmap=True),
@@ -183,6 +186,8 @@ def heatmap():
                     yticklabels=[],
                     annot_kws={"fontsize": "x-large"}
                 )
+                plt.xlabel('')
+                plt.ylabel('')
                 #plt.show()
                 logging.info('\tSave heatmap')
                 savefig(f'{folder_name}/{experiment_kind}/heatmap-{advice_type}-{episode_number}')
