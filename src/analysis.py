@@ -55,6 +55,21 @@ def savefig(plot_name):
     plt.gcf().tight_layout()
     plt.savefig(f'{resultsPath}/{plot_name}.pdf', bbox_inches='tight', pad_inches=0.01)
 
+def print_rewards():
+    for experiment_kind in ExperimentKind:
+        experiment_kind = experiment_kind.value
+        
+        print(experiment_kind)
+        for episode_number in episodes:
+            
+            dfs = loadData(experiment_kind, episode_number, DataKind.REWARD)
+            
+            for df_name, df in dfs.items():
+                mean = df.mean()
+                print(f'{df_name} mean: {round(mean.iloc[-1], 3)}')
+            
+            print('')
+
 def cumulative_reward():
     folder_name = 'cumulative_reward'
     os.mkdir(f'{resultsPath}/{folder_name}')
@@ -83,6 +98,7 @@ def cumulative_reward():
             
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
+            ax.set_ylim([0, 10000])
             legend_labels = ['Random', 'No advice', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
             plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
             #plt.show()
@@ -93,6 +109,7 @@ def cumulative_reward():
             logging.info('\tSave log plot')
             plt.legend(labels = legend_labels, fontsize='14', loc = 'lower right')
             plt.yscale('log')
+            ax.autoscale()
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
 
 def heatmap():
