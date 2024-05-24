@@ -1,5 +1,5 @@
 import argparse
-import gymnasium as gym
+import gym
 import imageio
 import logging
 import os
@@ -154,12 +154,20 @@ class MapTools():
         
         return map_desc
         
-    def render_map(self, size, seed):
+    def render_default_map(self):
+        map_desc = ["SFFF", "FHFH", "FFFH", "HFFG"]
+        imgfile = os.path.abspath(f'{self._FILES_PATH}/default.png')
+        self.render_map_from_description(map_desc, imgfile)
+        
+    def render_random_map(self, size, seed):
         map_desc = self.parse_map(size, seed)
+        imgfile = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.png')
+        self.render_map_from_description(map_desc, imgfile)
+    
+    def render_map_from_description(self, map_desc, imgfile):
         env = gym.make('FrozenLake-v1', desc=map_desc, render_mode='rgb_array')
         env.reset()
         img = env.render()
-        imgfile = os.path.abspath(f'{self._FILES_PATH}/{self.get_file_name(size, seed)}.png')
         imageio.imwrite(imgfile, img)
         env.close()
 
@@ -167,20 +175,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--generate', action='store_true')
     parser.add_argument('--render', action='store_true')
+    parser.add_argument('--default', action='store_true')
     parser.add_argument('--size')
     parser.add_argument('--seed')
 
     options = parser.parse_args()
     
-    assert options.size
-    assert options.seed
-    size = int(options.size)
-    seed = int(options.seed)
-    
     map_tools = MapTools('./maps')
-    if(options.generate):
-        map_tools.generate_map(size, seed)
-    if(options.render):
-        map_tools.render_map(size, seed)
+    if(options.default):
+        map_tools.render_default_map()
     else:
-        raise Exception('Either --generate or --render (or both) should be chosen.')
+        assert options.size
+        assert options.seed
+        size = int(options.size)
+        seed = int(options.seed)
+        if(options.generate):
+            map_tools.generate_map(size, seed)
+        if(options.render):
+            map_tools.render_random_map(size, seed)
+        else:
+            raise Exception('Either --generate or --render (or both) should be chosen.')
