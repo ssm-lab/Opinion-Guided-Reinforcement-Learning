@@ -10,8 +10,10 @@ class RunnerTests(unittest.TestCase):
     def testShaping(self):
         #3x3 grid
         
-        default_policy = default_policy = np.full((9, 4), 0.25)
-        print(default_policy)
+        policy = np.full((9, 4), 0.25)
+        p1 = policy
+        
+        print(p1)
         
         #advice about the middle cell
         file = os.path.abspath(f'input/opinions-test.txt')
@@ -19,15 +21,16 @@ class RunnerTests(unittest.TestCase):
         
         human_input = opinion_parser.parse(file)
         #advice = Advice(human_input, 0)
-        advice = Advice(human_input, 1)
+        advice = Advice(human_input, 0.99)
         
         print(f'{advice} @u={advice.u}.')
         
         r = Runner(12, 63, 2, 10)
-        policy = r.shape_policy(default_policy, advice)
+        policy = r.shape_policy(policy, advice)
         
         print(policy)
                 
+        print(np.array_equal(p1, policy))
         
 if __name__ == "__main__":
     unittest.main()

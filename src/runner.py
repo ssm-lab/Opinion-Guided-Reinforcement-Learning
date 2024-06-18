@@ -171,8 +171,12 @@ class Runner():
             logging.debug('Generating default policy')
             policy = self.get_default_policy(environment)
             if advice:
+                original_policy = policy
                 logging.info(f'\t\t\t Shaping policy with human input at u={advice.u}')
                 policy = self.shape_policy(policy, advice)
+                if advice.u==1.0:
+                    assert np.array_equal(original_policy, policy)
+                    print(np.array_equal(original_policy, policy))
             
             #logging.debug('Initial policy:')
             #logging.debug(policy)
