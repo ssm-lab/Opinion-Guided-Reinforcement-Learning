@@ -1,5 +1,5 @@
 import argparse
-import gymnasium as gym
+import gym as gym
 import logging
 import numpy as np
 import os
@@ -171,7 +171,7 @@ class Runner():
             logging.debug('Generating default policy')
             policy = self.get_default_policy(environment)
             if advice:
-                logging.info(f'Shaping policy with human input at u={advice.u}')
+                logging.info(f'\t\t\t Shaping policy with human input at u={advice.u}')
                 policy = self.shape_policy(policy, advice)
             
             #logging.debug('Initial policy:')
@@ -235,7 +235,7 @@ class Runner():
         cumulative_rewards = []
         final_policies = []
         for i in range(self._NUM_EXPERIMENTS):
-            logging.info(f'running experiment #{i+1}')
+            logging.info(f'\t\t running experiment #{i+1}')
             success_rate, steps_taken, cumulative_reward, final_policy= self.discrete_policy_grad(max_episodes, advice=advice, is_random=is_random)
             success_rates.append(success_rate)
             steps.append(steps_taken)
@@ -257,7 +257,7 @@ class Runner():
             
             logging.info(f'======{max_episodes} EPISODES======')
             
-            logging.info('\t running 1 evaluation with random agent')
+            logging.info('running evaluation with random agent')
             success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, is_random=True)
             reward_results = cumulative_rewards
             self.save_experiment_data(reward_results, reward_data_folder_name, 'random')
@@ -265,7 +265,7 @@ class Runner():
             policy_results = self.preprocess_policy_data(final_policies)
             self.save_experiment_data(policy_results, policy_data_folder_name, 'random')
             
-            logging.info('\t running 1 evaluation without advice')
+            logging.info('running evaluation without advice')
             success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes)
             reward_results = cumulative_rewards
             self.save_experiment_data(reward_results, reward_data_folder_name, 'noadvice')
@@ -274,11 +274,12 @@ class Runner():
             self.save_experiment_data(policy_results, policy_data_folder_name, 'noadvice')
             
             human_input = self.get_human_input()
+            print(human_input)
             assert human_input.map_size == self._SIZE #sanity check
+            logging.info(f'running evaluation of advised agent')
             for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
-                logging.info(f'\t\t running evaluation adviced agent with u={u}')
+                logging.info(f'\t advice at u={u}')
                 advice = Advice(human_input, u)
-                logging.info(f'\t\t advice.u set to {advice.u}')
                 success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
                 reward_results = cumulative_rewards
                 self.save_experiment_data(reward_results, reward_data_folder_name, 'advice', u=u)
@@ -344,8 +345,10 @@ if __name__ == '__main__':
 
     size = 12
     seed = 63
-    numexperiments = 30
-    maxepisodes = [5000, 7500, 10000]
+    #numexperiments = 30
+    numexperiments = 2
+    #maxepisodes = [5000, 7500, 10000]
+    maxepisodes = [10]
     
     experiment_name = None
     if options.name is not None:
