@@ -53,8 +53,12 @@ class Runner():
         
         return default_policy
 
-    def get_human_input(self):
-        file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}.txt')
+    def get_advisor_input(self, quota=None):
+        if quota:
+            file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}-{quota}.txt')
+        else:
+            file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}.txt')
+        logging.info(f'Parsing advice file {file}')
         opinion_parser = OpinionParser()
         
         return opinion_parser.parse(file)
@@ -172,7 +176,7 @@ class Runner():
             policy = self.get_default_policy(environment)
             if advice:
                 original_policy = policy
-                logging.info(f'\t\t\t Shaping policy with human input at u={advice.u}')
+                logging.info(f'\t\t\t Shaping policy with advisor input at u={advice.u}')
                 policy = self.shape_policy(policy, advice)
                 if advice.u==1.0:
                     assert np.array_equal(original_policy, policy)
@@ -247,11 +251,79 @@ class Runner():
             final_policies.append(final_policy)
         return success_rates, steps, cumulative_rewards, final_policies
 
-    def run_experiment(self, experiment_name=None):
+    
+            
+    
+        
+        
+    def run_experiment_coop(self, experiment_name=None):
+        complete_folder_name = self.prepare_folder(experiment_name)
+        pass
+    
+    def prepare_folder(self, experiment_name=None):
         logging.info(f'Preparing output folder')
         main_folder_name = experiment_name if experiment_name is not None else datetime.now().strftime("%Y%m%d-%H%M%S")
         complete_folder_name = f'{self._reward_results_PATH}/{main_folder_name}'
         self.create_folder(complete_folder_name)
+        
+        return complete_folder_name
+        
+        
+    
+    def run_experiment_random(self, max_episodes):
+        logging.info(f'====== RANDOM AGENT WITH {max_episodes} EPISODES ======')
+        
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, is_random=True)
+        reward_results = cumulative_rewards
+        policy_results = self.preprocess_policy_data(final_policies)
+        
+        return reward_results, policy_results
+            
+    def run_experiment_noadvice(self, max_episodes):
+        logging.info(f'====== NO ADVICE AGENT WITH {max_episodes} EPISODES ======')
+        
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes)
+        reward_results = cumulative_rewards
+        policy_results = self.preprocess_policy_data(final_policies)
+        
+        return reward_results, policy_results
+    
+    def run_experiment_synthetic(self, max_episodes, quota, u):
+        logging.info(f'====== SYNTHETIC-ADVISED AGENT WITH {max_episodes} EPISODES AT u={u} ======')
+        
+        advisor_input = self.get_advisor_input(quota)
+        assert advisor_input.map_size == self._SIZE #sanity check
+        
+        advice = Advice(advisor_input, u)
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
+        reward_results = cumulative_rewards
+        policy_results = self.preprocess_policy_data(final_policies)
+        
+        return reward_results, policy_results
+    
+    """
+    def run_experiment_realhuman(self, maxepisodes, quota, position):
+        logging.info(f'====== SYNTHETIC-ADVISED AGENT WITH {max_episodes} EPISODES AT u={u} ======')
+        
+        advisor_id='A'
+        advisor_input = self.get_advisor_input(quota, advisor_id) # TODO: parser needs to be able to handle advisor ID (for coop mode too)
+        assert advisor_input.map_size == self._SIZE #sanity check
+        
+        #~~~~~~~~~~~~~~~~~~~~~~~~
+        # This is the part here that needs to be adopted
+        # calibrate u
+        for i in advisor_input:
+            advice = Advice(advisor_input, u) # todo: this needs to be adopted to accommodate piece-by-piece compilation
+        
+        #~~~~~~~~~~~~~~~~~~~~~~~~
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
+        reward_results = cumulative_rewards
+        policy_results = self.preprocess_policy_data(final_policies)
+        
+        return reward_results, policy_results
+    """
+    def run_experiment(self, mode, experiment_name=None):
+        complete_folder_name = self.prepare_folder(experiment_name)
         
         for max_episodes in self._MAX_EPISODES:
             reward_data_folder_name = f'{complete_folder_name}/{max_episodes}/reward_data'
@@ -259,37 +331,33 @@ class Runner():
             policy_data_folder_name = f'{complete_folder_name}/{max_episodes}/policy_data'
             self.create_folder(policy_data_folder_name)
             
-            logging.info(f'======{max_episodes} EPISODES======')
             
-            logging.info('running evaluation with random agent')
-            success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, is_random=True)
-            reward_results = cumulative_rewards
-            self.save_experiment_data(reward_results, reward_data_folder_name, 'random')
-
-            policy_results = self.preprocess_policy_data(final_policies)
-            self.save_experiment_data(policy_results, policy_data_folder_name, 'random')
-            
-            logging.info('running evaluation without advice')
-            success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes)
-            reward_results = cumulative_rewards
-            self.save_experiment_data(reward_results, reward_data_folder_name, 'noadvice')
-
-            policy_results = self.preprocess_policy_data(final_policies)
-            self.save_experiment_data(policy_results, policy_data_folder_name, 'noadvice')
-            
-            human_input = self.get_human_input()
-            print(human_input)
-            assert human_input.map_size == self._SIZE #sanity check
-            logging.info(f'running evaluation of advised agent')
-            for u in [0.01, 0.2, 0.4, 0.6, 0.8, 1.0]:
-                logging.info(f'\t advice at u={u}')
-                advice = Advice(human_input, u)
-                success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
-                reward_results = cumulative_rewards
-                self.save_experiment_data(reward_results, reward_data_folder_name, 'advice', u=u)
-
-                policy_results = self.preprocess_policy_data(final_policies)
-                self.save_experiment_data(policy_results, policy_data_folder_name, 'advice', u=u)
+            if mode=='random':
+                reward_results, policy_results = self.run_experiment_random(max_episodes)
+                self.save_experiment_data(reward_results, reward_data_folder_name, 'random')
+                self.save_experiment_data(policy_results, policy_data_folder_name, 'random')
+            elif mode=='noadvice':
+                reward_results, policy_results = self.run_experiment_noadvice(max_episodes)
+                self.save_experiment_data(reward_results, reward_data_folder_name, 'noadvice')
+                self.save_experiment_data(policy_results, policy_data_folder_name, 'noadvice')
+            elif mode=='synthetic':
+                for quota in ['all', 'holes', 'human10', 'human5']:
+                    for u in [0.01, 0.2, 0.4, 0.6, 0.8]:
+                    #for u in [0.01]:
+                        reward_results, policy_results = self.run_experiment_synthetic(max_episodes, quota=quota, u=u)
+                        self.save_experiment_data(reward_results, reward_data_folder_name, f'advice-synthetic-{quota}', file_suffix = ('u', u))
+                        self.save_experiment_data(policy_results, policy_data_folder_name, f'advice-synthetic-{quota}', file_suffix = ('u', u))
+            elif mode=='realhuman':
+                pass
+                #for quota in ['human10', 'human5']:
+                #    for position in ['topleft', 'bottomright', 'topright', 'bottomleft']:                    
+                #        reward_results, policy_results = self.run_experiment_realhuman(max_episodes, quota=quota, position=position)
+                #        self.save_experiment_data(reward_results, reward_data_folder_name, f'advice-real-{quota}', file_suffix = ('position', position))
+                #        self.save_experiment_data(policy_results, policy_data_folder_name, f'advice-real-{quota}', file_suffix = ('position', position))
+            elif mode=='coop':
+                pass
+            else:
+                raise Exception(f'Unknown mode {mode} selected')
             
             logging.info(f'======EXPERIMENT DONE======\n')
             
@@ -301,13 +369,13 @@ class Runner():
     def save_data(self, data, file_name):
         np.savetxt(f'{file_name}', data, delimiter=",")
     
-    def save_experiment_data(self, data, root_folder, agent, u=None):
+    def save_experiment_data(self, data, root_folder, agent, file_suffix=None):
         folder_name = f'{root_folder}/{agent}'
         self.create_folder(folder_name)
         
         file_name = f'{folder_name}/{self._FILE_PATTERN}'
-        if u is not None:
-            file_name = '-'.join([file_name, f'u-{u}'])
+        if file_suffix is not None:
+            file_name = '-'.join([file_name, f'{file_suffix[0]}-{file_suffix[1]}'])
             
         file_name = '.'.join([file_name, 'csv'])
         
@@ -324,6 +392,8 @@ class Runner():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--mode', required=True, type=str)
     
     parser.add_argument('--name', required=False, type=str)
 
@@ -349,14 +419,18 @@ if __name__ == '__main__':
 
     size = 12
     seed = 63
-    #numexperiments = 30
-    numexperiments = 2
-    #maxepisodes = [5000, 7500, 10000]
-    maxepisodes = [10]
+    numexperiments = 30
+    maxepisodes = [5000, 7500, 10000]
+    #maxepisodes = [7500]
     
     experiment_name = None
     if options.name is not None:
         experiment_name = options.name.lower()
         
     runner = Runner(size, seed, numexperiments, maxepisodes, level)
-    runner.run_experiment(experiment_name)
+    
+    mode = options.mode.lower()
+    if mode not in ['random', 'noadvice', 'synthetic', 'human', 'coop']:
+        raise Exception('Unknown mode selected')
+    
+    runner.run_experiment(mode, experiment_name)

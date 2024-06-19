@@ -8,13 +8,16 @@ import argparse
 import os
 import shutil
 import logging
+from datetime import datetime
 
-#episodes = [5000, 7500, 10000]
-episodes = [10000]
+episodes = [5000, 7500, 10000]
+#episodes = [10000]
 size = 12
 seed = 63
+name = 'test3'
+
 filename = f'{size}x{size}-seed{seed}'
-inputFolder = './experiments/02-full'
+inputFolder = f'./experiments/{name}'
 resultsPath = './analysis-output'
 experiments_input_path = './input'
 
@@ -29,16 +32,14 @@ class ExperimentKind(Enum):
     HUMAN_10 = 'human10'
 
 def loadData(experiment_kind, episode_number, data_kind):
-    #df_random = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
-    df_random = pd.read_csv(f'{inputFolder}/all/10000/{data_kind.value}_data/random/{filename}.csv', header=None)
-    #df_no_advice = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
-    df_no_advice = pd.read_csv(f'{inputFolder}/all/10000/{data_kind.value}_data/noadvice/{filename}.csv', header=None) # TODO: this breaks the 5k and 7.5k charts a bit
-    df_advice_00 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.01.csv', header=None)
-    df_advice_02 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.2.csv', header=None)
-    df_advice_04 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.4.csv', header=None)
-    df_advice_06 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.6.csv', header=None)
-    df_advice_08 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-0.8.csv', header=None)
-    df_advice_10 = pd.read_csv(f'{inputFolder}/{experiment_kind}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_advice_00 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.01.csv', header=None)
+    df_advice_02 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.2.csv', header=None)
+    df_advice_04 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.4.csv', header=None)
+    df_advice_06 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.6.csv', header=None)
+    df_advice_08 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.8.csv', header=None)
+    #df_advice_10 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
     
     return {
         'random': df_random,
@@ -48,7 +49,7 @@ def loadData(experiment_kind, episode_number, data_kind):
         'advice_04': df_advice_04,
         'advice_06': df_advice_06,
         'advice_08': df_advice_08,
-        'advice_10': df_advice_10
+        #'advice_10': df_advice_10
     }
     
 def savefig(plot_name):
@@ -71,7 +72,7 @@ def print_rewards():
             print('')
 
 def cumulative_reward():
-    folder_name = 'cumulative_reward'
+    folder_name = f'cumulative_reward-{name}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
     os.mkdir(f'{resultsPath}/{folder_name}')
     
     for experiment_kind in ExperimentKind:
@@ -91,15 +92,22 @@ def cumulative_reward():
             
             for df_name, df in dfs.items():
                 mean = df.mean()
-                #std = df.std()
                 x = np.arange(len(mean))
                 plt.plot(x, mean, label=df_name)
-                #plt.fill_between(x, mean - std, mean + std, alpha=0.2)
+                if df_name=='no_advice':
+                    std = df.std()
+                    plt.fill_between(x, mean - std, mean + std, alpha=0.2)
+                    maxvalue = df.max()
+                    plt.plot(x, maxvalue, label='noadvice-max')                    
+                    minvalue = df.min()
+                    plt.plot(x, minvalue, label='noadvice-min')                    
             
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
             ax.set_ylim([0, 10000])
-            legend_labels = ['Random', 'No advice', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
+            #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
+            legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
+            #legend_labels = ['Random', 'No advice', 'Advice@u=0.0']
             plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
             #plt.show()
             
