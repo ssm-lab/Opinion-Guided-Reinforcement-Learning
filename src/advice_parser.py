@@ -1,18 +1,18 @@
 import re
-from model import Cell, Opinion, HumanInput
+from model import Cell, Advice, AdvisorInput
 
 
-class OpinionParser():
+class AdviceParser():
 
     def parse(self, file):
         with open(file, 'r') as f:
             map_size = f.readline()
-            opinions = []
+            advice_list = []
             for line in f:
                 [cell, value] = re.split(r' ', line)
                 coordinates = re.search(r'[0-9]{1},[0-9]{1}', cell)
                 [y, x] = re.split(r',', coordinates.group(0))
                 cell = Cell(int(y), int(x), int(map_size))
-                opinions.append(Opinion(cell, int(value)))
+                advice_list.append(Advice(cell, int(value)))
                 
-        return HumanInput(int(map_size), opinions)
+        return AdvisorInput(int(map_size), advice_list)
