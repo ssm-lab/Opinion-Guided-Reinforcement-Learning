@@ -10,11 +10,11 @@ import shutil
 import logging
 from datetime import datetime
 
-episodes = [5000, 7500, 10000]
-#episodes = [10000]
+#episodes = [5000, 7500, 10000]
+episodes = [10000]
 size = 12
 seed = 63
-name = 'test3'
+name = 'july17'
 
 filename = f'{size}x{size}-seed{seed}'
 inputFolder = f'./experiments/{name}'
@@ -30,8 +30,10 @@ class ExperimentKind(Enum):
     SYNTHETIC_HOLES = 'holes'
     HUMAN_5 = 'human5'
     HUMAN_10 = 'human10'
+    COOPERATIVE_5 = 'coop5'
+    COOPERATIVE_10 = 'coop10'
 
-def loadData(experiment_kind, episode_number, data_kind):
+def loadSyntheticData(experiment_kind, episode_number, data_kind):
     df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
     df_advice_00 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.01.csv', header=None)
@@ -50,6 +52,19 @@ def loadData(experiment_kind, episode_number, data_kind):
         'advice_06': df_advice_06,
         'advice_08': df_advice_08,
         #'advice_10': df_advice_10
+    }
+
+def loadHumanData(experiment_kind, episode_number, data_kind):
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_advice_coop_topleft_bottomright = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topleft-bottomright/{filename}.csv', header=None)
+    df_advice_coop_topright_bottomleft = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topright-bottomleft/{filename}.csv', header=None)
+    
+    return {
+        'random': df_random,
+        'no_advice': df_no_advice,
+        'coop_topleft_bottomright': df_advice_coop_topleft_bottomright,
+        'coop_topright_bottomleft':df_advice_coop_topright_bottomleft
     }
     
 def savefig(plot_name):
@@ -85,7 +100,11 @@ def cumulative_reward():
         for episode_number in episodes:
             logging.info(f'Running analysis cumulative_reward with episode_number {episode_number}')
             
-            dfs = loadData(experiment_kind, episode_number, DataKind.REWARD)
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.REWARD)
+
+            else:
+                dfs = loadHumanData(experiment_kind, episode_number, DataKind.REWARD)
             
             fig = plt.figure()
             ax = plt.gca()
@@ -105,22 +124,28 @@ def cumulative_reward():
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
             ax.set_ylim([0, 10000])
-            #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
-            legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
-            #legend_labels = ['Random', 'No advice', 'Advice@u=0.0']
+
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
+            else: 
+                legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Top Left Bottom Right', 'Top Right Bottom Left']
+
+
             plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
             #plt.show()
             
             logging.info('\tSave linear plot')
+            plt.title(f'Cumulative Reward {experiment_kind}-{episode_number}-linear') # remove for final plots
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-linear')
             
             logging.info('\tSave log plot')
             plt.legend(labels = legend_labels, fontsize='14', loc = 'lower right')
             plt.yscale('log')
             ax.autoscale()
+            plt.title(f'Cumulative Reward {experiment_kind}-{episode_number}-log')
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
 
-def heatmap():
+def heatmap(): #TODO update for coop mode
     folder_name = 'heatmaps'
     os.mkdir(f'{resultsPath}/{folder_name}')
     
@@ -305,6 +330,3 @@ if __name__ == '__main__':
         plt.savefig(filename, format='pdf', bbox_inches='tight')
         #plt.show()
 """
-    
-    
-
