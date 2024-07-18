@@ -3,9 +3,9 @@ import os
 from map_tools import MapTools
 from abc import ABC, abstractmethod
 from openpyxl import load_workbook, Workbook
-from model import Cell, Opinion, Fact, Direction
+from model import Cell, Advice, Fact, Direction
 
-class OpinionStrategy(ABC):
+class AdviceStrategy(ABC):
 
     def __init__(self, size, seed):
         self._size = size
@@ -13,31 +13,31 @@ class OpinionStrategy(ABC):
         
         self._MAPS_PATH = './maps'
         self._facts = self.parse_map()
-        self._opinions = self.generate_opinions_from_facts()
+        self._advice = self.generate_advice_from_facts()
     
-    def generate_opinions_from_facts(self):
-        goal_opinions = []
-        hole_opinions = []
-        frozen_opinions = []
+    def generate_advice_from_facts(self):
+        goal_advice = []
+        hole_advice = []
+        frozen_advice = []
         
         for fact in self._facts:
             if(fact.value == 'G'):
-                goal_opinions.append(Opinion(fact.cell, 2))
+                goal_advice.append(Advice(fact.cell, 2))
             elif(fact.value == 'H'):
-                hole_opinions.append(Opinion(fact.cell, -2))
+                hole_advice.append(Advice(fact.cell, -2))
             else: #F or S
                 neighboring_holes = len([f for c in [n for n in fact.cell.get_neighbors() if n is not None] for f in self._facts if f.cell.row == c[0] and f.cell.col == c[1] and f.value=='H'])
                 if(neighboring_holes == 0):
-                    frozen_opinions.append(Opinion(fact.cell, 1))
+                    frozen_advice.append(Advice(fact.cell, 1))
                 elif(neighboring_holes == 1):
-                    frozen_opinions.append(Opinion(fact.cell, 0))
+                    frozen_advice.append(Advice(fact.cell, 0))
                 else:
-                    frozen_opinions.append(Opinion(fact.cell, -1))
+                    frozen_advice.append(Advice(fact.cell, -1))
         
-        return {'goal': goal_opinions, 'holes': hole_opinions, 'frozen': frozen_opinions}
+        return {'goal': goal_advice, 'holes': hole_advice, 'frozen': frozen_advice}
     
     @abstractmethod
-    def select_opinions(self):
+    def select_advice(self):
         pass
 
     def parse_map(self):
@@ -58,36 +58,36 @@ class OpinionStrategy(ABC):
         
         return facts
     
-    def save_opinion_file(self, opinions, strategy_name):
+    def save_advice_file(self, advice, strategy_name):
         results_folder = os.path.abspath(self._MAPS_PATH)
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
         
-        with open(f'{self._MAPS_PATH}/opinions-{self._size}x{self._size}-seed{self._seed}-{strategy_name}.txt', 'w') as file:
+        with open(f'{self._MAPS_PATH}/advice-{self._size}x{self._size}-seed{self._seed}-{strategy_name}.txt', 'w') as file:
             file.write(f'{self._size}')
-            for opinion in opinions:
-                opinion_string = f'\n[{opinion.cell.row},{opinion.cell.col}], {opinion.value:+}'
-                file.write(opinion_string)
+            for advice in advice:
+                advice_string = f'\n[{advice.cell.row},{advice.cell.col}], {advice.value:+}'
+                file.write(advice_string)
 
     
-class EveryCellStrategy(OpinionStrategy):
+class EveryCellStrategy(AdviceStrategy):
     
-    def select_opinions(self):
-        self.save_opinion_file([v for k, vs in self._opinions.items() for v in vs], str(self))
+    def select_advice(self):
+        self.save_advice_file([v for k, vs in self._advice.items() for v in vs], str(self))
     
     def __str__(self):
         return 'all'    
     
-class JustTheHolesStrategy(OpinionStrategy):
+class JustTheHolesStrategy(AdviceStrategy):
     
-    def select_opinions(self):
-        self.save_opinion_file(self._opinions['goal']+self._opinions['holes'], str(self))
+    def select_advice(self):
+        self.save_advice_file(self._advice['goal']+self._advice['holes'], str(self))
         
     def __str__(self):
         return 'holes'
 
 
-#move opinion_parser here
+#move advice_parser here
         
     
 
@@ -105,8 +105,8 @@ if __name__ == '__main__':
     seed = int(options.seed)
     
     if(options.generate == 'all'):
-        EveryCellStrategy(size, seed).select_opinions()
+        EveryCellStrategy(size, seed).select_advice()
     elif(options.generate == 'holes'):
-        JustTheHolesStrategy(size, seed).select_opinions()
+        JustTheHolesStrategy(size, seed).select_advice()
     else:
         raise Error('Invalid argument')
