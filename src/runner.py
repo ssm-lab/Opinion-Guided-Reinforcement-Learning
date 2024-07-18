@@ -6,11 +6,11 @@ import os
 import pandas as pd
 import shutil
 import sl
-from model import Advice
+from model import SyntheticAdvisorOpinions, HumanAdvisorOpinions
 from map_tools import MapTools
 from datetime import datetime
 from matplotlib import pyplot as plt
-from opinion_parser import OpinionParser
+from advice_parser import AdviceParser
 from scipy.stats import wilcoxon
 from scipy.special import softmax
 from sklearn.preprocessing import normalize
@@ -20,6 +20,7 @@ class Runner():
     def __init__(self, size, seed, numexperiments, maxepisodes, log_level=logging.INFO):
         self._SIZE = size
         self._SEED = seed
+        self._BASERATE = 0.25 # TODO
         self._NUM_EXPERIMENTS = numexperiments
         self._MAX_EPISODES = maxepisodes
         
@@ -52,20 +53,20 @@ class Runner():
         default_policy = np.full((num_states, num_actions), 1/num_actions)
         
         return default_policy
-
-    def get_advisor_input(self, quota=None):
-        if quota:
-            file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}-{quota}.txt')
+    
+    def get_advisor_input(self, quota=None, advisor_id=None, position=None):
+        if advisor_id: #supported for coop mode only
+            file = os.path.abspath(f'{self._INPUT_PATH}/advice-{self._FILE_PATTERN}-{quota}-{advisor_id}-{position}.txt')
         else:
-            file = os.path.abspath(f'{self._INPUT_PATH}/opinions-{self._FILE_PATTERN}.txt')
+            file = os.path.abspath(f'{self._INPUT_PATH}/advice-{self._FILE_PATTERN}-{quota}.txt')
         logging.info(f'Parsing advice file {file}')
-        opinion_parser = OpinionParser()
+        advice_parser = AdviceParser()
         
-        return opinion_parser.parse(file)
+        return advice_parser.parse(file)
 
-    def shape_policy(self, policy, advice):
-        for opinion in advice.opinions:
-            cell = opinion.cell
+    def shape_policy(self, policy, advisor_opinions):
+        for advisor_opinion in advisor_opinions.opinion_list:
+            cell = advisor_opinion.cell
             #logging.debug(cell)
             for sap in cell.get_actions_to_me_from_all_neighbors():
                 neighbor_row, neighbor_col = sap[0]
@@ -73,11 +74,9 @@ class Runner():
                 action_number = sap[1].value
                 
                 base_action_probability = policy[neighbors_sequence_number][action_number]
-                base_action_opinion = sl.probability_to_opinion(base_action_probability)
+                base_action_opinion = sl.probability_to_opinion(cell, base_action_probability)
                 
-                hinted_opinion = opinion.get_binomial_opinion(base_rate = base_action_probability) #base rate is set from the environment
-                
-                fused_opinion = sl.beliefConstraintFusion(base_action_opinion, hinted_opinion)
+                fused_opinion = sl.beliefConstraintFusion(advisor_opinion, base_action_opinion)
                 fused_probability = sl.opinion_to_probability(fused_opinion)
                 
                 policy[neighbors_sequence_number][action_number] = fused_probability
@@ -176,14 +175,14 @@ class Runner():
             policy = self.get_default_policy(environment)
             if advice:
                 original_policy = policy
-                logging.info(f'\t\t\t Shaping policy with advisor input at u={advice.u}')
+                #logging.info(f'\t\t\t Shaping policy with advisor input at u={advice.u}') #TODO does not work with coop
                 policy = self.shape_policy(policy, advice)
-                if advice.u==1.0:
-                    assert np.array_equal(original_policy, policy)
-                    print(np.array_equal(original_policy, policy))
+                #if advice.u==1.0: # TODO does not work with coop
+                #    assert np.array_equal(original_policy, policy)
+                #    print(np.array_equal(original_policy, policy))
             
-            #logging.debug('Initial policy:')
-            #logging.debug(policy)
+            logging.debug('Initial policy:')
+            logging.debug(policy)
             
             logging.debug('Policy initialized. Exploring now.')
 
@@ -232,8 +231,8 @@ class Runner():
 
         # final policy
         final_policy = softmax(policy, axis = 1)
-        #logging.info("Final Policy")
-        #logging.info(final_policy)
+        logging.debug("Final Policy")
+        logging.debug(final_policy)
 
         return success_rate, steps_taken, cumulative_reward, final_policy
 
@@ -251,15 +250,6 @@ class Runner():
             final_policies.append(final_policy)
         return success_rates, steps, cumulative_rewards, final_policies
 
-    
-            
-    
-        
-        
-    def run_experiment_coop(self, experiment_name=None):
-        complete_folder_name = self.prepare_folder(experiment_name)
-        pass
-    
     def prepare_folder(self, experiment_name=None):
         logging.info(f'Preparing output folder')
         main_folder_name = experiment_name if experiment_name is not None else datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -268,8 +258,6 @@ class Runner():
         
         return complete_folder_name
         
-        
-    
     def run_experiment_random(self, max_episodes):
         logging.info(f'====== RANDOM AGENT WITH {max_episodes} EPISODES ======')
         
@@ -294,8 +282,9 @@ class Runner():
         advisor_input = self.get_advisor_input(quota)
         assert advisor_input.map_size == self._SIZE #sanity check
         
-        advice = Advice(advisor_input, u)
-        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=advice)
+        synthetic_opinions = SyntheticAdvisorOpinions(advisor_input, u, self._BASERATE)
+  
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=synthetic_opinions)
         reward_results = cumulative_rewards
         policy_results = self.preprocess_policy_data(final_policies)
         
@@ -322,6 +311,34 @@ class Runner():
         
         return reward_results, policy_results
     """
+
+    
+    def run_experiment_coop(self, max_episodes, quota, advisor1_position, advisor2_position):
+        logging.info(f'====== COOP ADVISED AGENT WITH {max_episodes} EPISODES ======')
+        logging.info(f'QUOTA: {quota} ** ADVISOR1: {advisor1_position} ** ADVISOR2: {advisor2_position}')
+
+        # get advisor input 
+        advisor1_id = "A1"
+        advisor2_id = "A2"
+
+        advisor1_input = self.get_advisor_input(quota, advisor1_id, advisor1_position)
+        advisor2_input = self.get_advisor_input(quota, advisor2_id, advisor2_position)
+
+        assert (advisor1_input.map_size and advisor2_input.map_size) == self._SIZE #sanity check
+        
+        #transform advice into opinions
+        advisor1_opinions = HumanAdvisorOpinions(advisor1_input, advisor1_position, self._BASERATE)
+        advisor2_opinions = HumanAdvisorOpinions(advisor2_input, advisor2_position, self._BASERATE)
+
+        #fuse advice
+        fused_opinions = sl.fuse_advisor_opinions(advisor1_opinions, advisor2_opinions)
+
+        success_rates, steps, cumulative_rewards, final_policies = self.evaluate(max_episodes, advice=fused_opinions)
+        reward_results = cumulative_rewards
+        policy_results = self.preprocess_policy_data(final_policies)
+        
+        return reward_results, policy_results
+    
     def run_experiment(self, mode, experiment_name=None):
         complete_folder_name = self.prepare_folder(experiment_name)
         
@@ -330,7 +347,6 @@ class Runner():
             self.create_folder(reward_data_folder_name)
             policy_data_folder_name = f'{complete_folder_name}/{max_episodes}/policy_data'
             self.create_folder(policy_data_folder_name)
-            
             
             if mode=='random':
                 reward_results, policy_results = self.run_experiment_random(max_episodes)
@@ -355,7 +371,12 @@ class Runner():
                 #        self.save_experiment_data(reward_results, reward_data_folder_name, f'advice-real-{quota}', file_suffix = ('position', position))
                 #        self.save_experiment_data(policy_results, policy_data_folder_name, f'advice-real-{quota}', file_suffix = ('position', position))
             elif mode=='coop':
-                pass
+                for quota in ['coop10', 'coop5']:
+                    for position in [['topleft', 'bottomright'], ['topright', 'bottomleft']]:   
+                        advisor1_position, advisor2_position =  position[0], position[1]       
+                        reward_results, policy_results = self.run_experiment_coop(max_episodes, quota=quota, advisor1_position=(advisor1_position), advisor2_position=(advisor2_position))
+                        self.save_experiment_data(reward_results, reward_data_folder_name, f'advice-{quota}-{advisor1_position}-{advisor2_position}')
+                        self.save_experiment_data(policy_results, policy_data_folder_name, f'advice-{quota}-{advisor1_position}-{advisor2_position}')
             else:
                 raise Exception(f'Unknown mode {mode} selected')
             
@@ -420,8 +441,8 @@ if __name__ == '__main__':
     size = 12
     seed = 63
     numexperiments = 30
-    maxepisodes = [5000, 7500, 10000]
-    #maxepisodes = [7500]
+    #maxepisodes = [5000, 7500, 10000]
+    maxepisodes = [10000]
     
     experiment_name = None
     if options.name is not None:
