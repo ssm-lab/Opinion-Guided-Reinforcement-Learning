@@ -10,7 +10,7 @@ class AdviceParser():
             advice_list = []
             for line in f:
                 [cell, value] = re.split(r' ', line)
-                coordinates = re.search(r'[0-9]{1},[0-9]{1}', cell)
+                coordinates = re.search(r'[0-9]+,[0-9]+', cell)
                 [y, x] = re.split(r',', coordinates.group(0))
                 cell = Cell(int(y), int(x), int(map_size))
                 advice_list.append(Advice(cell, int(value)))
