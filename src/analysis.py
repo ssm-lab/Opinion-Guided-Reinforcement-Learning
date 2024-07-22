@@ -10,28 +10,32 @@ import shutil
 import logging
 from datetime import datetime
 
-episodes = [5000, 7500, 10000]
-#episodes = [10000]
+episodes = [10000]
 size = 12
 seed = 63
-name = 'test3'
+name = '04'
 
 filename = f'{size}x{size}-seed{seed}'
 inputFolder = f'./experiments/{name}'
 resultsPath = './analysis-output'
 experiments_input_path = './input'
 
+
 class DataKind(Enum):
     REWARD = 'reward'
     POLICY = 'policy'
-    
+
+
 class ExperimentKind(Enum):
     SYNTHETIC_ALL = 'all'
     SYNTHETIC_HOLES = 'holes'
     HUMAN_5 = 'human5'
     HUMAN_10 = 'human10'
+    COOPERATIVE_5 = 'coop5'
+    COOPERATIVE_10 = 'coop10'
 
-def loadData(experiment_kind, episode_number, data_kind):
+
+def loadSyntheticData(experiment_kind, episode_number, data_kind):
     df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
     df_advice_00 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.01.csv', header=None)
@@ -51,10 +55,26 @@ def loadData(experiment_kind, episode_number, data_kind):
         'advice_08': df_advice_08,
         #'advice_10': df_advice_10
     }
+
+
+def loadHumanData(experiment_kind, episode_number, data_kind):
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_advice_coop_topleft_bottomright = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topleft-bottomright/{filename}.csv', header=None)
+    df_advice_coop_topright_bottomleft = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topright-bottomleft/{filename}.csv', header=None)
     
+    return {
+        'random': df_random,
+        'no_advice': df_no_advice,
+        'coop_topleft_bottomright': df_advice_coop_topleft_bottomright,
+        'coop_topright_bottomleft':df_advice_coop_topright_bottomleft
+    }
+
+
 def savefig(plot_name):
     plt.gcf().tight_layout()
     plt.savefig(f'{resultsPath}/{plot_name}.pdf', bbox_inches='tight', pad_inches=0.01)
+
 
 def print_rewards():
     for experiment_kind in ExperimentKind:
@@ -62,14 +82,19 @@ def print_rewards():
         
         print(experiment_kind)
         for episode_number in episodes:
-            
-            dfs = loadData(experiment_kind, episode_number, DataKind.REWARD)
+
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.REWARD)
+
+            else:
+                dfs = loadHumanData(experiment_kind, episode_number, DataKind.REWARD)
             
             for df_name, df in dfs.items():
                 mean = df.mean()
                 print(f'{df_name} mean: {round(mean.iloc[-1], 3)}')
             
             print('')
+
 
 def cumulative_reward():
     folder_name = f'cumulative_reward-{name}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
@@ -85,7 +110,11 @@ def cumulative_reward():
         for episode_number in episodes:
             logging.info(f'Running analysis cumulative_reward with episode_number {episode_number}')
             
-            dfs = loadData(experiment_kind, episode_number, DataKind.REWARD)
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.REWARD)
+
+            else:
+                dfs = loadHumanData(experiment_kind, episode_number, DataKind.REWARD)
             
             fig = plt.figure()
             ax = plt.gca()
@@ -94,20 +123,27 @@ def cumulative_reward():
                 mean = df.mean()
                 x = np.arange(len(mean))
                 plt.plot(x, mean, label=df_name)
-                if df_name=='no_advice':
-                    std = df.std()
-                    plt.fill_between(x, mean - std, mean + std, alpha=0.2)
-                    maxvalue = df.max()
-                    plt.plot(x, maxvalue, label='noadvice-max')                    
-                    minvalue = df.min()
-                    plt.plot(x, minvalue, label='noadvice-min')                    
+                # Used to plot standard deviation
+                #if df_name=='no_advice':
+                #    std = df.std()
+                #    plt.fill_between(x, mean - std, mean + std, alpha=0.2)
+                #    maxvalue = df.max()
+                #    plt.plot(x, maxvalue, label='noadvice-max')
+                #    minvalue = df.min()
+                #    plt.plot(x, minvalue, label='noadvice-min')
             
             plt.xlabel('Episode')
             plt.ylabel('Cumulative Reward')
             ax.set_ylim([0, 10000])
-            #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8', 'Advice@u=1.0']
-            legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
-            #legend_labels = ['Random', 'No advice', 'Advice@u=0.0']
+
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
+                legend_labels = ['Random', 'No advice', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
+            else:
+                #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Top Left Bottom Right', 'Top Right Bottom Left']
+                legend_labels = ['Random', 'No advice', 'Top Left Bottom Right', 'Top Right Bottom Left']
+
+
             plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
             #plt.show()
             
@@ -119,6 +155,7 @@ def cumulative_reward():
             plt.yscale('log')
             ax.autoscale()
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
+
 
 def heatmap():
     folder_name = 'heatmaps'
@@ -134,7 +171,11 @@ def heatmap():
         for episode_number in episodes:
             logging.info(f'Running analysis heatmap with episode_number {episode_number}')
             
-            dfs = loadData(experiment_kind, episode_number, DataKind.POLICY)
+            if experiment_kind in ['all', 'holes', 'human5', 'human10']:
+                dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.POLICY)
+
+            else:
+                dfs = loadHumanData(experiment_kind, episode_number, DataKind.POLICY)
             
             #logging.debug(dfs['advice_00'])
             
@@ -221,7 +262,6 @@ def heatmap():
                 savefig(f'{folder_name}/{experiment_kind}/heatmap-{experiment_kind}-{advice_type}-{episode_number}')
                 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', type=str)
@@ -266,45 +306,3 @@ if __name__ == '__main__':
     else:
         logging.info(f'Running analysis {options.a}.')
         exec(f'{options.a}()')
-
-
-"""
-    def plot_success_rate(self, no_advice_success_rates, advice_success_rates, human_input):
-        logging.getLogger().setLevel(logging.INFO)
-        plt.plot(no_advice_success_rates, label='No advice')
-        plt.plot(advice_success_rates, label='Advice')
-        plt.title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; u={round(human_input.u, 4)}.')
-        plt.xlabel('Iteration')
-        plt.ylabel('Success Rate %')
-        plt.legend()
-        
-        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="SUCCESSRATE")}'
-        
-        plt.savefig(filename, format='pdf', bbox_inches='tight')
-        #plt.show()
-        
-    def plot_steps(self, all_steps, human_input):
-        logging.debug(f'all_steps: {all_steps}')
-        w = wilcoxon(all_steps.iloc[:, 0], all_steps.iloc[:, 1])
-        logging.debug(f'Wilcoxon: {w}')
-        
-        logging.getLogger().setLevel(logging.INFO)
-        
-        fig = plt.figure()
-        
-        ax = fig.add_subplot(111)
-        ax.boxplot(all_steps)
-        
-        ax.set_title(f'Map: {self._MAP_NAME}; eps={str(self._MAX_EPISODES)}; exps={str(self._NUM_EXPERIMENTS)}; ; u={round(human_input.u, 4)}; p={round(w.pvalue, 4)}.')
-        ax.set_xlabel('Mode')
-        ax.set_ylabel('Steps')
-        ax.set_xticklabels(all_steps.columns)
-        
-        filename = f'{self.get_file_name(extension="pdf", advice_explicit=False, u_explicit=True, human_input=human_input, extra="STEPS")}'
-        
-        plt.savefig(filename, format='pdf', bbox_inches='tight')
-        #plt.show()
-"""
-    
-    
-

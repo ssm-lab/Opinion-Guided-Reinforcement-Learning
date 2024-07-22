@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - coop_updates
   pull_request:
     branches:
       - main

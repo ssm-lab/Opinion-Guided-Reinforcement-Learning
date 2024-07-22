@@ -1,5 +1,5 @@
 from enum import Enum
-import sl
+import numpy as np
 
 class Direction(Enum):
     LEFT = 0
@@ -87,58 +87,118 @@ class Fact():
         return 'Fact(cell: {}, value: {}).'.format(self.cell, self.value)
 
 """
-Represents an opinion about a cell ([-2,2] in Frozen Lake)
+Advisor Input: A list of advice
+"""   
+class AdvisorInput():
+
+    def __init__(self, map_size: int, advice_list: list):
+        self.map_size = map_size
+        self.advice_list = advice_list
+
+    def __str__(self):
+        return f'Advisor input with {len(self.advice_list)} pieces of advice.'
+
 """
-class Opinion():
+Advice: Value of a cell
+"""
+class Advice():
 
     def __init__(self, cell:Cell, value:int):
         self.cell = cell
         self.value = value
-        
+
     def __str__(self):
-        return 'Opinion(cell: {}, value: {}).'.format(self.cell, self.value)
-        
-    def normalize_belief_for_uncertainty(self):
-        # these are hard-coded values to be replaced when we generalize the framework
-        self.b = (self.value + 2) * ((1 - self.u)/(4))
-        self.d = 1 - (self.b + self.u)
-        
-        # some floating-point issues, as usual with Python
-        self.b = round(self.b, 4)
-        self.d = round(self.d, 4)
-        
-    def get_binomial_opinion(self, base_rate):
-        return [self.b, self.d, self.u, base_rate]
-        
-    def project(self, base_rate):
-        return sl.opinion_to_probability([self.b, self.d, self.u, base_rate])
+        return f'Advice at cell {self.cell} with value {self.value}'
 
 """
-Human input: a collection of opinions without the level of uncertainty
+Advisor Opinions
 """
-class HumanInput():
-    
-    def __init__(self, map_size: int, opinions):
-        self.map_size = map_size
-        self.opinions = opinions
-        
+class AdvisorOpinions():
+    def __init__(self):
+        self.opinion_list = []
+        self.advice_to_opinions()
+
     def __str__(self):
-        return f'Human input with {len(self.opinions)} opinions.'
-        
-"""
-Advice compiled from human input at a specific level of uncertainty
-"""        
-class Advice():
+        return f'Advisor opinions with {len(self.opinion_list)} opinions.'
     
-    def __init__(self, human_input: HumanInput, u: float):
-        self.opinions = human_input.opinions
+    def normalize_belief_for_uncertainty(self, advice_value, u: float):
+        # these are hard-coded values to be replaced when we generalize the framework ... some floating-point issues, as usual with Python
+        b = round((advice_value + 2) * ((1 - u)/(4)), 4)
+        d = round(1 - (b + u), 4)
+        return b, d
+
+    def advice_to_opinions(self):
+        pass
+
+"""
+Synthetic-Advisor Opinions: A list of opinions at uniform uncertainty
+"""
+class SyntheticAdvisorOpinions(AdvisorOpinions):
+
+    def __init__(self, advisor_input: AdvisorInput, u: float, base_rate: float):
+        self.advisor_input = advisor_input
         self.u = u
-        self.compile_advice()
-        
-    def compile_advice(self):
-        for opinion in self.opinions:
-            opinion.u = self.u
-            opinion.normalize_belief_for_uncertainty()
+        self.base_rate = base_rate
+        self.opinion_list = []
+        self.advice_to_opinions()
+
+    def advice_to_opinions(self):
+        for advice in self.advisor_input.advice_list:
+            b, d = self.normalize_belief_for_uncertainty(advice_value = advice.value, u = self.u)
+            opinion = Opinion(advice.cell, b, d, self.u, self.base_rate)
+            self.opinion_list.append(opinion)
+
+"""
+Human-Advisor Opinions: A list of opinions with uncertainty modulated as a function of advisor distance
+"""
+class HumanAdvisorOpinions(AdvisorOpinions):
+    def __init__(self, advisor_input: AdvisorInput, advisor_position: str, base_rate: float):
+        self.advisor_input = advisor_input
+        self.advisor_position = advisor_position
+        self.base_rate = base_rate
+        self.map_size = advisor_input.map_size
+        self.opinion_list = []
+        self.set_advisor_cell()
+        self.advice_to_opinions()
+
+    def set_advisor_cell(self):
+        advisor_cell_dict = {
+            'topleft': Cell(0,0, self.map_size),
+            'topright': Cell(0, self.map_size-1, self.map_size),
+            'bottomleft': Cell(self.map_size-1, 0, self.map_size),
+            'bottomright': Cell(self.map_size-1, self.map_size-1, self.map_size)
+        }
+        self.advisor_cell = advisor_cell_dict[self.advisor_position]
+
+    def advice_to_opinions(self):
+        for advice in self.advisor_input.advice_list:
+            if advice.cell == self.advisor_cell:
+                u = 0.01
+            else:
+                u = round(self.get_uncertainty(cell = advice.cell), 4)
+            b, d = self.normalize_belief_for_uncertainty(advice_value = advice.value, u = u)
+            opinion = Opinion(advice.cell, b, d, u, self.base_rate)
+            self.opinion_list.append(opinion)
+
+    def get_uncertainty(self, cell: Cell):
+        distance = self.get_manhattan_distance(cell)
+        max_distance = (self.map_size - 1) * 2
+        return distance / max_distance
+
+    def get_manhattan_distance(self, other_cell: Cell):
+        return np.abs(self.advisor_cell.row - other_cell.row) + np.abs(self.advisor_cell.col - other_cell.col)
+
+"""
+Opinion: An binomial opinion (belief, disbelief, uncertainty, base rate) about a cell
+"""
+class Opinion():
+
+    def __init__(self, cell:Cell, b: float, d: float, u: float, a:float):
+        self.cell = cell
+        self.b, self.d, self.u, self.a = b, d, u, a
+        self.opinion_tuple = (self.b, self.d, self.u, self.a)
+        assert(self.b + self.d + self.u == 1) 
+        assert(0.0 <= (self.b and self.d and self.u and self.a) <= 1.0) 
         
     def __str__(self):
-        return f'Advice with {len(self.opinions)} opinions.'
+        return f'Opinion (b = {self.b}, d = {self.d}, u = {self.u}, a = {self.a}) about cell {self.cell}.'
