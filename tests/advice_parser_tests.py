@@ -9,15 +9,15 @@ def advice_parser():
 
 
 def test_valid_parser_input(advice_parser):
-    file = os.path.abspath("valid_parser_input.txt")
+    file = os.path.abspath("tests/valid_parser_input.txt")
     with open(file, 'r') as f:
         lines = len(f.readlines())
         expected_num_advice = lines - 1
 
-    advisor_input = advice_parser.parse(file)
+        advisor_input = advice_parser.parse(file)
 
-    assert advisor_input.map_size >= 0
-    assert expected_num_advice == len(advisor_input.advice_list)
+        assert advisor_input.map_size >= 0
+        assert expected_num_advice == len(advisor_input.advice_list)
 
 
 if __name__ == "main":
