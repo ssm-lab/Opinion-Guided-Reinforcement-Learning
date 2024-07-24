@@ -4,12 +4,12 @@ from src.binomial_opinion import BinomialOpinion
 
 @pytest.fixture
 def opinion1():
-    return BinomialOpinion(0.5, 0.0, 0.5, 0.25)
+    yield BinomialOpinion(0.5, 0.0, 0.5, 0.25)
 
 
 @pytest.fixture
 def opinion2():
-    return BinomialOpinion(0.6, 0.2, 0.2, 0.25)
+    yield BinomialOpinion(0.6, 0.2, 0.2, 0.25)
 
 
 def test_valid_binomial_opinion(opinion1):
