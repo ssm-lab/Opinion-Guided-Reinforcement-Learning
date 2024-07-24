@@ -27,7 +27,7 @@ jobs:
           pip install -e $GITHUB_WORKSPACE
       - name: Unit tests
         run: |
-          python -m tests.advice_parser
+          python -m tests.advice_parser_tests
           python -m tests.advice_tools
           python -m tests.analysis_tests
           python -m tests.map_tools_tests
