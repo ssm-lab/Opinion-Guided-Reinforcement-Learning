@@ -30,8 +30,8 @@ jobs:
           python -m tests.advice_parser_tests
           python -m tests.advice_tools_tests
           python -m tests.analysis_tests
+          python -m binomial_opinion_tests
           python -m tests.grid_tests
           python -m tests.map_tools_tests
           python -m tests.model_tests
           python -m tests.runner_tests
-          python -m tests.subjective_logic_tests
