@@ -5,7 +5,7 @@ from src.model import Direction, Grid, Cell
 
 @pytest.fixture()
 def grid():
-    return Grid(10)
+    yield Grid(10)
 
 
 @pytest.mark.parametrize('invalid_edge_size_type', (2.5, 1.0, 4.5))
