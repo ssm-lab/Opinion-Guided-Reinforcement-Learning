@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -36,38 +37,38 @@ class ExperimentKind(Enum):
 
 
 def loadSyntheticData(experiment_kind, episode_number, data_kind):
-    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
-    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
     df_advice_00 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.01.csv', header=None)
     df_advice_02 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.2.csv', header=None)
     df_advice_04 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.4.csv', header=None)
     df_advice_06 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.6.csv', header=None)
     df_advice_08 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.8.csv', header=None)
     #df_advice_10 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
     
     return {
-        'random': df_random,
-        'no_advice': df_no_advice,
         'advice_00': df_advice_00,
         'advice_02': df_advice_02,
         'advice_04': df_advice_04,
         'advice_06': df_advice_06,
         'advice_08': df_advice_08,
         #'advice_10': df_advice_10
+        'random': df_random,
+        'no_advice': df_no_advice
     }
 
 
-def loadHumanData(experiment_kind, episode_number, data_kind):
+def loadCoopData(experiment_kind, episode_number, data_kind):
+    df_advice_coop_sequential = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topleft-bottomright/{filename}.csv', header=None)
+    df_advice_coop_parallel = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topright-bottomleft/{filename}.csv', header=None)
     df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
-    df_advice_coop_topleft_bottomright = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topleft-bottomright/{filename}.csv', header=None)
-    df_advice_coop_topright_bottomleft = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topright-bottomleft/{filename}.csv', header=None)
     
     return {
+        'coop_sequential': df_advice_coop_sequential,
+        'coop_parallel': df_advice_coop_parallel,
         'random': df_random,
-        'no_advice': df_no_advice,
-        'coop_topleft_bottomright': df_advice_coop_topleft_bottomright,
-        'coop_topright_bottomleft':df_advice_coop_topright_bottomleft
+        'no_advice': df_no_advice
     }
 
 
@@ -87,7 +88,7 @@ def print_rewards():
                 dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.REWARD)
 
             else:
-                dfs = loadHumanData(experiment_kind, episode_number, DataKind.REWARD)
+                dfs = loadCoopData(experiment_kind, episode_number, DataKind.REWARD)
             
             for df_name, df in dfs.items():
                 mean = df.mean()
@@ -114,15 +115,35 @@ def cumulative_reward():
                 dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.REWARD)
 
             else:
-                dfs = loadHumanData(experiment_kind, episode_number, DataKind.REWARD)
+                dfs = loadCoopData(experiment_kind, episode_number, DataKind.REWARD)
             
             fig = plt.figure()
             ax = plt.gca()
             
             for df_name, df in dfs.items():
+
                 mean = df.mean()
                 x = np.arange(len(mean))
-                plt.plot(x, mean, label=df_name)
+                if df_name == 'coop_sequential':
+                    plt.plot(x, mean, label=df_name, color='tomato')
+                elif df_name == 'coop_parallel':
+                    plt.plot(x, mean, label=df_name, color='lightseagreen')
+                elif df_name == 'advice_00':
+                    plt.plot(x, mean, label=df_name, color='orange')
+                elif df_name == 'advice_02':
+                    plt.plot(x, mean, label=df_name, color='yellowgreen')
+                elif df_name == 'advice_04':
+                    plt.plot(x, mean, label=df_name, color='dodgerblue')
+                elif df_name == 'advice_06':
+                    plt.plot(x, mean, label=df_name, color='darkviolet')
+                elif df_name == 'advice_08':
+                    plt.plot(x, mean, label=df_name, color='hotpink')
+                elif df_name == 'no_advice':
+                    plt.plot(x, mean, label=df_name, color='black', linestyle='dashed')
+                elif df_name == 'random':
+                    plt.plot(x, mean, label=df_name, color='black', linestyle='dotted')
+                else:
+                    plt.plot(x, mean, label=df_name)
                 # Used to plot standard deviation
                 #if df_name=='no_advice':
                 #    std = df.std()
@@ -138,20 +159,20 @@ def cumulative_reward():
 
             if experiment_kind in ['all', 'holes', 'human5', 'human10']:
                 #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
-                legend_labels = ['Random', 'No advice', 'Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4', 'Advice@u=0.6', 'Advice@u=0.8']
+                legend_labels = ['Advice@u=0.0', 'Advice@u=0.2', 'Advice@u=0.4',
+                                 'Advice@u=0.6', 'Advice@u=0.8', 'No advice', 'Random']
             else:
                 #legend_labels = ['Random', 'No advice', 'No advice sigma', 'No advice max', 'No advice min', 'Top Left Bottom Right', 'Top Right Bottom Left']
-                legend_labels = ['Random', 'No advice', 'Top Left Bottom Right', 'Top Right Bottom Left']
+                legend_labels = ['Coop - Sequential', 'Coop - Parallel', 'No advice', 'Random']
 
-
-            plt.legend(labels = legend_labels, fontsize='14', loc = 'upper left')
+            plt.legend(labels=legend_labels, fontsize='14', loc='upper left')
             #plt.show()
             
             logging.info('\tSave linear plot')
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-linear')
             
             logging.info('\tSave log plot')
-            plt.legend(labels = legend_labels, fontsize='14', loc = 'lower right')
+            plt.legend(labels=legend_labels, fontsize='14', loc='lower right')
             plt.yscale('log')
             ax.autoscale()
             savefig(f'{folder_name}/{experiment_kind}/cumulative_reward-{experiment_kind}-{episode_number}-log')
@@ -175,7 +196,7 @@ def heatmap():
                 dfs = loadSyntheticData(experiment_kind, episode_number, DataKind.POLICY)
 
             else:
-                dfs = loadHumanData(experiment_kind, episode_number, DataKind.POLICY)
+                dfs = loadCoopData(experiment_kind, episode_number, DataKind.POLICY)
             
             #logging.debug(dfs['advice_00'])
             
