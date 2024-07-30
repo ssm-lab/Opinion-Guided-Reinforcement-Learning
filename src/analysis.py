@@ -42,9 +42,9 @@ def loadSyntheticData(experiment_kind, episode_number, data_kind):
     df_advice_04 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.4.csv', header=None)
     df_advice_06 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.6.csv', header=None)
     df_advice_08 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-synthetic-{experiment_kind}/{filename}-u-0.8.csv', header=None)
-    #df_advice_10 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None)
-    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
+    #df_advice_10 = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice/{filename}-u-1.0.csv', header=None),
     df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     
     return {
         'advice_00': df_advice_00,
@@ -53,22 +53,22 @@ def loadSyntheticData(experiment_kind, episode_number, data_kind):
         'advice_06': df_advice_06,
         'advice_08': df_advice_08,
         #'advice_10': df_advice_10
-        'random': df_random,
-        'no_advice': df_no_advice
+        'no_advice': df_no_advice,
+        'random': df_random
     }
 
 
 def loadCoopData(experiment_kind, episode_number, data_kind):
     df_advice_coop_sequential = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topleft-bottomright/{filename}.csv', header=None)
     df_advice_coop_parallel = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/advice-{experiment_kind}-topright-bottomleft/{filename}.csv', header=None)
-    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     df_no_advice = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/noadvice/{filename}.csv', header=None)
+    df_random = pd.read_csv(f'{inputFolder}/{episode_number}/{data_kind.value}_data/random/{filename}.csv', header=None)
     
     return {
         'coop_sequential': df_advice_coop_sequential,
         'coop_parallel': df_advice_coop_parallel,
-        'random': df_random,
-        'no_advice': df_no_advice
+        'no_advice': df_no_advice,
+        'random': df_random
     }
 
 
