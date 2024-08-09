@@ -14,7 +14,7 @@ from datetime import datetime
 episodes = [10000]
 size = 12
 seed = 63
-name = '04'
+name = 'final-experiment'
 
 filename = f'{size}x{size}-seed{seed}'
 inputFolder = f'./experiments/{name}'
