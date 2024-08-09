@@ -11,7 +11,7 @@ class AdviceStrategy(ABC):
         self._size = size
         self._seed = seed
         
-        self._MAPS_PATH = './maps'
+        self._MAPS_PATH = './02-maps'
         self._facts = self.parse_map()
         self._advice = self.generate_advice_from_facts()
     

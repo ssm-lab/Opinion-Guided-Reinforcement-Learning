@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     options = parser.parse_args()
     
-    map_tools = MapTools('./maps')
+    map_tools = MapTools('./02-maps')
     if(options.default):
         map_tools.render_default_map()
     else:

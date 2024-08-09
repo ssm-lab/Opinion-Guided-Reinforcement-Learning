@@ -30,8 +30,8 @@ class Runner():
         self._GAMMA = 1
         
         #File paths
-        self._INPUT_PATH = './input'
-        self._reward_results_PATH = './experiments'
+        self._INPUT_PATH = './03-input'
+        self._reward_results_PATH = './05-experiments'
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
         
@@ -175,7 +175,7 @@ class Runner():
             policy = self.get_default_policy(environment)
             if advice:
                 original_policy = policy
-                #logging.info(f'\t\t\t Shaping policy with advisor input at u={advice.u}') #TODO does not work with coop
+                #logging.info(f'\t\t\t Shaping policy with advisor 03-input at u={advice.u}') #TODO does not work with coop
                 policy = self.shape_policy(policy, advice)
                 #if advice.u==1.0: # TODO does not work with coop
                 #    assert np.array_equal(original_policy, policy)
@@ -317,7 +317,7 @@ class Runner():
         logging.info(f'====== COOP ADVISED AGENT WITH {max_episodes} EPISODES ======')
         logging.info(f'QUOTA: {quota} ** ADVISOR1: {advisor1_position} ** ADVISOR2: {advisor2_position}')
 
-        # get advisor input 
+        # get advisor 03-input
         advisor1_id = "A1"
         advisor2_id = "A2"
 

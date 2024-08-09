@@ -18,8 +18,8 @@ name = '04'
 
 filename = f'{size}x{size}-seed{seed}'
 inputFolder = f'./experiments/{name}'
-resultsPath = './analysis-output'
-experiments_input_path = './input'
+resultsPath = './06-analysis-output'
+experiments_input_path = './03-input'
 
 
 class DataKind(Enum):

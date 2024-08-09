@@ -96,7 +96,7 @@ class AdvisorInput():
         self.advice_list = advice_list
 
     def __str__(self):
-        return f'Advisor input with {len(self.advice_list)} pieces of advice.'
+        return f'Advisor 03-input with {len(self.advice_list)} pieces of advice.'
 
 """
 Advice: Value of a cell

@@ -1,4 +1,4 @@
-name: Unit tests
+name: Unit 07-tests
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e $GITHUB_WORKSPACE
-      - name: Unit tests
+      - name: Unit 07-tests
         run: |
           python -m tests.grid_tests
           python -m tests.model_tests

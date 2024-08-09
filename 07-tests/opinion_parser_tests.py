@@ -12,7 +12,7 @@ class OpinionParserTests(unittest.TestCase):
         del(self._parser)
 
     def testValidInput(self):
-        file = os.path.abspath("tests/validinput.txt")
+        file = os.path.abspath("07-tests/validinput.txt")
         
         with open(file, 'r') as f:
             lines = len(f.readlines())
