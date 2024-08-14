@@ -31,7 +31,7 @@ class Runner():
         
         #File paths
         self._INPUT_PATH = './03-input'
-        self._reward_results_PATH = './05-experiments'
+        self._reward_results_PATH = './05-experiments-output'
         self._FILE_PATTERN = f'{size}x{size}-seed{seed}'
         self._MAP_NAME = f'{size}x{size}'
         
