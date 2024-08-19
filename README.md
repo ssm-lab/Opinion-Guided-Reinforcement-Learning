@@ -84,10 +84,8 @@ A framework for human-informed reinforcement learning by subjective logic
 
 ## Analysis and plotting  
  - Run `python .\04-src\analysis.py -a [METHOD_NAME] -s [True|False] -log [LOG_LEVEL]`.
- -  **Mandatory parameter:**  
-	- `--mode [MODE]` -- The `[MODE]` value is one of the following: `random`, `noadvice`, `synthetic`, `coop`.  
 - **Optional parameters:**  
-	- `-a [METHOD_NAME]` -- The `[METHOD_NAME]` value is one of the following `cumulative_reward`, `heatmap`. 
+	- `-a [METHOD_NAME]` -- The `[METHOD_NAME]` value is one of the following: `cumulative_reward`, `heatmap`. 
 	- `-s [True|False]` -- Stash folder results
 	 - `--log [LOG_LEVEL]` -- The `[LOG_LEVEL]` value is one of the following: `critical`, `error`, `warn`, `warning`, `info`, `debug`.  
 - Results will be generated into `/06-analysis-output`
