@@ -17,7 +17,7 @@ seed = 63
 name = 'final-experiment'
 
 filename = f'{size}x{size}-seed{seed}'
-inputFolder = f'./experiments/{name}'
+inputFolder = f'./05-experiments-output/{name}'
 resultsPath = './06-analysis-output'
 experiments_input_path = './03-input'
 
