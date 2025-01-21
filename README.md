@@ -6,10 +6,10 @@ A framework for human-informed reinforcement learning by subjective logic
   
 # Repository structure  
   
-- [/01-experiment-setup](/01-experiment-setup) - Input files for the experiment.   
-- [/02-maps](/02-maps) - Map files: `.xlsx`  
-- [/03-input](/03-input) - Input files: maps and human advice  
-- [/04-src](/04-src) - Source code  
+- /01-experiment-setup - Input files for the experiment.   
+- /02-maps - Map files: `.xlsx`  
+- /03-input - Input files: maps and human advice  
+- /04-src - Source code  
   - Main  
     - `runner.py` - Main module  
     - `model.py` - Model classes  
