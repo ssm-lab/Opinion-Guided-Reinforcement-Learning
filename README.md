@@ -23,9 +23,9 @@ A framework for human-informed reinforcement learning by subjective logic
  - `sl.py` - Subjective logic utilities  
   - Map module  
     - `map_tools.py` - Generator, renderer, and parser for maps. Saves maps under `/02-maps` as `.xslx` files.  
-- [/05-experiments-output](/05-experiments-output) - Experiment data as `.csv` files  
-- [/06-analysis-output](/06-analysis-output) - Analysis of experiment data from `/05-experiments-output` as `.pdf` files  
-- [/tests](/04-src/tests) - Unit tests.  
+- /05-experiments-output - Experiment data as `.csv` files  
+- /06-analysis-output - Analysis of experiment data from `/05-experiments-output` as `.pdf` files  
+- /tests - Unit tests.  
   
   
 # Setup guide  
