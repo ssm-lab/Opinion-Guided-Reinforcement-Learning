@@ -6,10 +6,10 @@ A framework for human-informed reinforcement learning by subjective logic
   
 # Repository structure  
   
-- [/01-experiment-setup](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/01-experiment-setup) - Input files for the experiment.   
-- [/02-maps](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/02-maps) - Map files: `.xlsx`  
-- [/03-input](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/03-input) - Input files: maps and human advice  
-- [/04-src](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/04-src) - Source code  
+- [/01-experiment-setup](/01-experiment-setup) - Input files for the experiment.   
+- [/02-maps](/02-maps) - Map files: `.xlsx`  
+- [/03-input](/03-input) - Input files: maps and human advice  
+- [/04-src](/04-src) - Source code  
   - Main  
     - `runner.py` - Main module  
     - `model.py` - Model classes  
@@ -23,9 +23,9 @@ A framework for human-informed reinforcement learning by subjective logic
  - `sl.py` - Subjective logic utilities  
   - Map module  
     - `map_tools.py` - Generator, renderer, and parser for maps. Saves maps under `/02-maps` as `.xslx` files.  
-- [/05-experiments-output](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/05-experiments-output) - Experiment data as `.csv` files  
-- [/06-analysis-output](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/06-analysis-output) - Analysis of experiment data from `/05-experiments-output` as `.pdf` files  
-- [/tests](https://github.com/dagenaik/Uncertainty-in-Reinforcement-Learning/tree/main/04-src/tests) - Unit tests.  
+- [/05-experiments-output](/05-experiments-output) - Experiment data as `.csv` files  
+- [/06-analysis-output](/06-analysis-output) - Analysis of experiment data from `/05-experiments-output` as `.pdf` files  
+- [/tests](/04-src/tests) - Unit tests.  
   
   
 # Setup guide  
