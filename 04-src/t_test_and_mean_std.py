@@ -90,14 +90,40 @@ if __name__ == "__main__":
         "unadvised": unadvised
     }
 
+    # MEAN & VARIANCES
+    print("MEAN CUMULATIVE REWARD & VARIANCE\n")
+    for unadvised_name, unadvised_df in unadvised_mode.items():
+        mean = unadvised_df.mean().item()
+        std = unadvised_df.std().item()
+        print(f"{unadvised_name.title()}: {mean:.3f} ± {std:.3f}")
+        print()
 
+    for advised_name, advised_df in advised_mode.items():
+        for index, u in enumerate(U_VALUES):
+            start = index * NUMBER_OF_EXPERIMENTS
+            end = start + NUMBER_OF_EXPERIMENTS
+            advised_data = advised_df.iloc[start:end, 0].values
+            mean = advised_data.mean().item()
+            std = advised_data.std().item()
+            print(f"{advised_name.title()}  @u={u}: {mean:.3f} ± {std:.3f}")
+        print()
+
+    for coop_name, coop_df in coop_mode.items():
+        mean = coop_df.mean().item()
+        std = coop_df.std().item()
+        print(f"{coop_name.title()}: {mean:.3f} ± {std:.3f}")
+        print()
+
+    print("*" * 75)
+
+    print("CUMULATIVE REWARD T-TEST\n")
     # UNADVISED VS RANDOM
     print("Unadvised vs Random")
     random_data = random.iloc[:, 0].values.astype(float)
     unadvised_data = unadvised.iloc[:, 0].values.astype(float)
     t_stat, p_val = ttest_ind(random_data, unadvised_data, equal_var=False)
     print(f"  p = {p_val:.4f}\n")
-    print("*" * 50)
+
 
     # SYNTHETIC VS UNADVISED & RANDOM
     for advised_name, advised_df in advised_mode.items():
@@ -112,9 +138,8 @@ if __name__ == "__main__":
                 unadvised_data = unadvised_df.iloc[:, 0].values#.astype(float)
                 _stat, p_val = ttest_ind(advised_data, unadvised_data, equal_var=False)
                 print(f"  @u={u}: p = {p_val:.4f}")
-
             print()
-    print("*" * 50)
+
 
     #SYNTHETIC VS COOP
     for advised_name, advised_df in advised_mode.items():
@@ -130,9 +155,7 @@ if __name__ == "__main__":
 
                 _stat, p_val = ttest_ind(advised_data, coop_data, equal_var=False)
                 print(f"  @u={u}: p = {p_val:.4f}")
-
             print()
-    print("*" * 50)
 
     # COOP VS UNADVISED & RANDOM 16
     for coop_name, coop_df in coop_mode.items():
@@ -144,5 +167,4 @@ if __name__ == "__main__":
 
             _stat, p_val = ttest_ind(coop_data, unadvised_data, equal_var=False)
             print(f"  p = {p_val:.4f}")
-
             print()

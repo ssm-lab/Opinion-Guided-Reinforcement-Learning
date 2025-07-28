@@ -1,0 +1,37 @@
+MEAN CUMULATIVE REWARD & STANDARD DEVIATION
+
+Random: 0.100 ± 0.305
+
+Unadvised: 607.267 ± 1997.863
+
+Advised_All  @u=0.01: 9386.467 ± 376.530
+Advised_All  @u=0.2: 8511.367 ± 1558.444
+Advised_All  @u=0.4: 7476.633 ± 1782.607
+Advised_All  @u=0.6: 2751.833 ± 3154.656
+Advised_All  @u=0.8: 1454.400 ± 2653.095
+
+Advised_Holes_And_Goal  @u=0.01: 9443.733 ± 299.726
+Advised_Holes_And_Goal  @u=0.2: 7835.267 ± 1414.997
+Advised_Holes_And_Goal  @u=0.4: 4218.000 ± 3394.626
+Advised_Holes_And_Goal  @u=0.6: 2089.433 ± 2994.078
+Advised_Holes_And_Goal  @u=0.8: 878.467 ± 1950.961
+
+Human_10  @u=0.01: 8907.733 ± 891.807
+Human_10  @u=0.2: 8607.500 ± 1068.967
+Human_10  @u=0.4: 4727.433 ± 2926.435
+Human_10  @u=0.6: 2737.600 ± 3187.665
+Human_10  @u=0.8: 1907.933 ± 3278.442
+
+Human_5  @u=0.01: 7576.067 ± 2112.713
+Human_5  @u=0.2: 4656.633 ± 2677.838
+Human_5  @u=0.4: 1718.300 ± 2504.951
+Human_5  @u=0.6: 1360.267 ± 2497.337
+Human_5  @u=0.8: 629.367 ± 1849.860
+
+Coop10_Parallel: 4924.967 ± 3340.866
+
+Coop10_Sequential: 7551.567 ± 2258.183
+
+Coop5_Parallel: 2867.633 ± 3287.128
+
+Coop5_Sequential: 5544.100 ± 2653.935

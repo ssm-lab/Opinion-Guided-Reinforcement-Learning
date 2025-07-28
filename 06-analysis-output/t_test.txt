@@ -1,7 +1,8 @@
+CUMULATIVE REWARD T-TEST
+
 Unadvised vs Random
   p = 0.1068
 
-**************************************************
 Advised All vs Random
   @u=0.01: p = 0.0000
   @u=0.2: p = 0.0000
@@ -58,7 +59,6 @@ Human 5 vs Unadvised
   @u=0.6: p = 0.2072
   @u=0.8: p = 0.9650
 
-**************************************************
 Advised All vs Coop10 Parallel
   @u=0.01: p = 0.0000
   @u=0.2: p = 0.0000
@@ -171,7 +171,6 @@ Human 5 vs Coop5 Sequential
   @u=0.6: p = 0.0000
   @u=0.8: p = 0.0000
 
-**************************************************
 Coop10 Parallel vs Random
   p = 0.0000
 
