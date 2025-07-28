@@ -1,0 +1,197 @@
+Unadvised vs Random
+  p = 0.1068
+
+**************************************************
+Advised All vs Random
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0001
+  @u=0.8: p = 0.0062
+
+Advised All vs Unadvised
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0031
+  @u=0.8: p = 0.1727
+
+Advised Holes And Goal vs Random
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0008
+  @u=0.8: p = 0.0218
+
+Advised Holes And Goal vs Unadvised
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0303
+  @u=0.8: p = 0.5998
+
+Human 10 vs Random
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0001
+  @u=0.8: p = 0.0039
+
+Human 10 vs Unadvised
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0036
+  @u=0.8: p = 0.0731
+
+Human 5 vs Random
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0009
+  @u=0.6: p = 0.0065
+  @u=0.8: p = 0.0773
+
+Human 5 vs Unadvised
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0655
+  @u=0.6: p = 0.2072
+  @u=0.8: p = 0.9650
+
+**************************************************
+Advised All vs Coop10 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0006
+  @u=0.6: p = 0.0128
+  @u=0.8: p = 0.0000
+
+Advised All vs Coop10 Sequential
+  @u=0.01: p = 0.0001
+  @u=0.2: p = 0.0623
+  @u=0.4: p = 0.8878
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Advised All vs Coop5 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.8907
+  @u=0.8: p = 0.0741
+
+Advised All vs Coop5 Sequential
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0018
+  @u=0.6: p = 0.0005
+  @u=0.8: p = 0.0000
+
+Advised Holes And Goal vs Coop10 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0001
+  @u=0.4: p = 0.4236
+  @u=0.6: p = 0.0011
+  @u=0.8: p = 0.0000
+
+Advised Holes And Goal vs Coop10 Sequential
+  @u=0.01: p = 0.0001
+  @u=0.2: p = 0.5644
+  @u=0.4: p = 0.0001
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Advised Holes And Goal vs Coop5 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.1262
+  @u=0.6: p = 0.3455
+  @u=0.8: p = 0.0067
+
+Advised Holes And Goal vs Coop5 Sequential
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0001
+  @u=0.4: p = 0.1011
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Human 10 vs Coop10 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.8098
+  @u=0.6: p = 0.0126
+  @u=0.8: p = 0.0009
+
+Human 10 vs Coop10 Sequential
+  @u=0.01: p = 0.0041
+  @u=0.2: p = 0.0260
+  @u=0.4: p = 0.0001
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Human 10 vs Coop5 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0253
+  @u=0.6: p = 0.8779
+  @u=0.8: p = 0.2662
+
+Human 10 vs Coop5 Sequential
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.2667
+  @u=0.6: p = 0.0005
+  @u=0.8: p = 0.0000
+
+Human 5 vs Coop10 Parallel
+  @u=0.01: p = 0.0006
+  @u=0.2: p = 0.7344
+  @u=0.4: p = 0.0001
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Human 5 vs Coop10 Sequential
+  @u=0.01: p = 0.9658
+  @u=0.2: p = 0.0000
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+Human 5 vs Coop5 Parallel
+  @u=0.01: p = 0.0000
+  @u=0.2: p = 0.0255
+  @u=0.4: p = 0.1359
+  @u=0.6: p = 0.0519
+  @u=0.8: p = 0.0022
+
+Human 5 vs Coop5 Sequential
+  @u=0.01: p = 0.0019
+  @u=0.2: p = 0.2063
+  @u=0.4: p = 0.0000
+  @u=0.6: p = 0.0000
+  @u=0.8: p = 0.0000
+
+**************************************************
+Coop10 Parallel vs Random
+  p = 0.0000
+
+Coop10 Parallel vs Unadvised
+  p = 0.0000
+
+Coop10 Sequential vs Random
+  p = 0.0000
+
+Coop10 Sequential vs Unadvised
+  p = 0.0000
+
+Coop5 Parallel vs Random
+  p = 0.0000
+
+Coop5 Parallel vs Unadvised
+  p = 0.0023
+
+Coop5 Sequential vs Random
+  p = 0.0000
+
+Coop5 Sequential vs Unadvised
+  p = 0.0000
