@@ -134,8 +134,8 @@ if __name__ == "__main__":
                 start = index * NUMBER_OF_EXPERIMENTS
                 end = start + NUMBER_OF_EXPERIMENTS
 
-                advised_data = advised_df.iloc[start:end, 0].values#.astype(float)
-                unadvised_data = unadvised_df.iloc[:, 0].values#.astype(float)
+                advised_data = advised_df.iloc[start:end, 0].values.astype(float)
+                unadvised_data = unadvised_df.iloc[:, 0].values.astype(float)
                 _stat, p_val = ttest_ind(advised_data, unadvised_data, equal_var=False)
                 print(f"  @u={u}: p = {p_val:.4f}")
             print()
