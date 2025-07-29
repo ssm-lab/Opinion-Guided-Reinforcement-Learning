@@ -79,7 +79,8 @@ if __name__ == "__main__":
         color_keys.append(key)
 
     # PLOT
-    box = plt.boxplot(data, labels=labels, patch_artist=True)
+    plt.figure(figsize=(16, 10))
+    box = plt.boxplot(data, labels=labels, patch_artist=True, widths=0.65)
     for median in box['medians']:
         median.set_color('black')
 
@@ -97,9 +98,11 @@ if __name__ == "__main__":
         Patch(facecolor='hotpink', label='u = 0.8')
     ]
 
-    plt.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+    plt.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.20),
+               ncol=8, frameon=False, fontsize=12)
 
-    plt.xticks(rotation=70)
+    plt.xticks(rotation=70, fontsize = 14)
     plt.ylabel('Cumulative Reward')
     plt.tight_layout()
+    plt.savefig("06-analysis-output/box_plot.pdf", format='pdf', bbox_inches='tight')
     plt.show()
