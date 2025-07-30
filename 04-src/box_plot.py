@@ -88,14 +88,13 @@ if __name__ == "__main__":
         patch.set_facecolor(get_color(key))
 
     legend_elements = [
-        Patch(facecolor='lightgray', label='random / unadvised'),
-        Patch(facecolor='lightseagreen', label='coop parallel'),
-        Patch(facecolor='tomato', label='coop sequential'),
         Patch(facecolor='orange', label='u = 0.0'),
         Patch(facecolor='yellowgreen', label='u = 0.2'),
         Patch(facecolor='dodgerblue', label='u = 0.4'),
         Patch(facecolor='darkviolet', label='u = 0.6'),
-        Patch(facecolor='hotpink', label='u = 0.8')
+        Patch(facecolor='hotpink', label='u = 0.8'),
+        Patch(facecolor='tomato', label='coop sequential'),
+        Patch(facecolor='lightseagreen', label='coop parallel')
     ]
 
     plt.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.20),
